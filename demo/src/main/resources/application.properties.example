@@ -1,13 +1,13 @@
 spring.application.name=demo
 
 # Valkey/Redis Connection Settings
-spring.data.redis.host=167.71.219.2
+spring.data.redis.host=your_valkey_host_here
 spring.data.redis.port=6378
 
 # Authentication
 # For username + password authentication (Valkey/Redis 6.0+ ACL):
-spring.data.redis.username=default
-spring.data.redis.password=ally990512
+spring.data.redis.username=your_username_here
+spring.data.redis.password=your_password_here
 
 # Optional Connection Settings
 spring.data.redis.timeout=60000
