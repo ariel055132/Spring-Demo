@@ -1,6 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.service.ValkeyService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,15 +14,16 @@ import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/valkey")
+@Tag(name = "Valkey Operations", description = "APIs for interacting with Valkey cache")
 public class ValkeyController {
 
     @Autowired
     private ValkeyService valkeyService;
 
-    /**
-     * Test Valkey connection
-     * GET /api/valkey/test
-     */
+    @Operation(
+            summary = "Test Valkey Connection",
+            description = "Verifies connectivity to the Valkey server by performing a test read/write operation"
+    )
     @GetMapping("/test")
     public ResponseEntity<Map<String, String>> testConnection() {
         Map<String, String> response = new HashMap<>();
@@ -28,15 +32,15 @@ public class ValkeyController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Set a key-value pair
-     * POST /api/valkey/set?key=mykey&value=myvalue
-     */
+    @Operation(
+            summary = "Set Key-Value Pair",
+            description = "Store a key-value pair in Valkey with optional expiration time"
+    )
     @PostMapping("/set")
     public ResponseEntity<Map<String, String>> setValue(
-            @RequestParam String key,
-            @RequestParam String value,
-            @RequestParam(required = false) Long expirySeconds) {
+            @Parameter(description = "The key to store") @RequestParam String key,
+            @Parameter(description = "The value to store") @RequestParam String value,
+            @Parameter(description = "Optional expiration time in seconds") @RequestParam(required = false) Long expirySeconds) {
         
         Map<String, String> response = new HashMap<>();
         
@@ -53,12 +57,13 @@ public class ValkeyController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Get value by key
-     * GET /api/valkey/get?key=mykey
-     */
+    @Operation(
+            summary = "Get Value by Key",
+            description = "Retrieve the value associated with a key from Valkey"
+    )
     @GetMapping("/get")
-    public ResponseEntity<Map<String, String>> getValue(@RequestParam String key) {
+    public ResponseEntity<Map<String, String>> getValue(
+            @Parameter(description = "The key to retrieve") @RequestParam String key) {
         Map<String, String> response = new HashMap<>();
         String value = valkeyService.get(key);
         
@@ -72,12 +77,13 @@ public class ValkeyController {
         }
     }
 
-    /**
-     * Delete a key
-     * DELETE /api/valkey/delete?key=mykey
-     */
+    @Operation(
+            summary = "Delete Key",
+            description = "Remove a key and its associated value from Valkey"
+    )
     @DeleteMapping("/delete")
-    public ResponseEntity<Map<String, String>> deleteKey(@RequestParam String key) {
+    public ResponseEntity<Map<String, String>> deleteKey(
+            @Parameter(description = "The key to delete") @RequestParam String key) {
         Map<String, String> response = new HashMap<>();
         Boolean deleted = valkeyService.delete(key);
         
@@ -86,12 +92,13 @@ public class ValkeyController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Check if key exists
-     * GET /api/valkey/exists?key=mykey
-     */
+    @Operation(
+            summary = "Check Key Existence",
+            description = "Verify whether a key exists in Valkey"
+    )
     @GetMapping("/exists")
-    public ResponseEntity<Map<String, Object>> keyExists(@RequestParam String key) {
+    public ResponseEntity<Map<String, Object>> keyExists(
+            @Parameter(description = "The key to check") @RequestParam String key) {
         Map<String, Object> response = new HashMap<>();
         Boolean exists = valkeyService.hasKey(key);
         
@@ -100,12 +107,13 @@ public class ValkeyController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Increment a numeric value
-     * POST /api/valkey/increment?key=counter
-     */
+    @Operation(
+            summary = "Increment Counter",
+            description = "Increment the numeric value of a key by 1. Creates the key with value 1 if it doesn't exist"
+    )
     @PostMapping("/increment")
-    public ResponseEntity<Map<String, Object>> increment(@RequestParam String key) {
+    public ResponseEntity<Map<String, Object>> increment(
+            @Parameter(description = "The key to increment") @RequestParam String key) {
         Map<String, Object> response = new HashMap<>();
         Long value = valkeyService.increment(key);
         
@@ -114,12 +122,13 @@ public class ValkeyController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Decrement a numeric value
-     * POST /api/valkey/decrement?key=counter
-     */
+    @Operation(
+            summary = "Decrement Counter",
+            description = "Decrement the numeric value of a key by 1. Creates the key with value -1 if it doesn't exist"
+    )
     @PostMapping("/decrement")
-    public ResponseEntity<Map<String, Object>> decrement(@RequestParam String key) {
+    public ResponseEntity<Map<String, Object>> decrement(
+            @Parameter(description = "The key to decrement") @RequestParam String key) {
         Map<String, Object> response = new HashMap<>();
         Long value = valkeyService.decrement(key);
         
@@ -128,12 +137,13 @@ public class ValkeyController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Get TTL for a key
-     * GET /api/valkey/ttl?key=mykey
-     */
+    @Operation(
+            summary = "Get Time-To-Live",
+            description = "Get the remaining time-to-live (TTL) in seconds for a key with expiration"
+    )
     @GetMapping("/ttl")
-    public ResponseEntity<Map<String, Object>> getTTL(@RequestParam String key) {
+    public ResponseEntity<Map<String, Object>> getTTL(
+            @Parameter(description = "The key to check TTL for") @RequestParam String key) {
         Map<String, Object> response = new HashMap<>();
         Long ttl = valkeyService.getExpire(key);
         

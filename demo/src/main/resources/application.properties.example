@@ -13,3 +13,9 @@ spring.data.redis.password=your_password_here
 spring.data.redis.timeout=60000
 spring.data.redis.database=0
 spring.data.redis.ssl.enabled=false
+
+# Swagger/OpenAPI Configuration
+springdoc.api-docs.path=/v3/api-docs
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.swagger-ui.operationsSorter=method
+springdoc.swagger-ui.tagsSorter=alpha
