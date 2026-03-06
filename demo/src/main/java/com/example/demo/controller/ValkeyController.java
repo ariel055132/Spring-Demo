@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.service.ValkeyService;
+import com.example.demo.util.LogUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,19 +43,27 @@ public class ValkeyController {
             @Parameter(description = "The value to store") @RequestParam String value,
             @Parameter(description = "Optional expiration time in seconds") @RequestParam(required = false) Long expirySeconds) {
         
-        Map<String, String> response = new HashMap<>();
+        LogUtil.debugInfo("Setting key: {} with value: {}", key, value);
         
-        if (expirySeconds != null && expirySeconds > 0) {
-            valkeyService.setWithExpiry(key, value, expirySeconds, TimeUnit.SECONDS);
-            response.put("message", "Key set with expiry of " + expirySeconds + " seconds");
-        } else {
-            valkeyService.set(key, value);
-            response.put("message", "Key set successfully");
+        try {
+            Map<String, String> response = new HashMap<>();
+            if (expirySeconds != null && expirySeconds > 0) {
+                valkeyService.setWithExpiry(key, value, expirySeconds, TimeUnit.SECONDS);
+                response.put("message", "Key set with expiry of " + expirySeconds + " seconds");
+                LogUtil.addInfo("Key {} set with expiry of {} seconds", key, expirySeconds);
+            } else {
+                valkeyService.set(key, value);
+                response.put("message", "Key set successfully");
+                LogUtil.addInfo("Key {} set successfully", key);
+            }
+            
+            response.put("key", key);
+            response.put("value", value);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            LogUtil.wrongInfo("Failed to set key: {}", key, e);
+            throw e;
         }
-        
-        response.put("key", key);
-        response.put("value", value);
-        return ResponseEntity.ok(response);
     }
 
     @Operation(
@@ -64,15 +73,24 @@ public class ValkeyController {
     @GetMapping("/get")
     public ResponseEntity<Map<String, String>> getValue(
             @Parameter(description = "The key to retrieve") @RequestParam String key) {
+        
+        LogUtil.debugInfo("Getting value for key: {}", key);
+        
         Map<String, String> response = new HashMap<>();
         String value = valkeyService.get(key);
         
         if (value != null) {
+            LogUtil.addInfo("Retrieved value for key: {}", key);
+            
             response.put("key", key);
             response.put("value", value);
+            
             return ResponseEntity.ok(response);
         } else {
+            LogUtil.wrongInfo("Key not found: {}", key);
+            
             response.put("error", "Key not found");
+            
             return ResponseEntity.notFound().build();
         }
     }

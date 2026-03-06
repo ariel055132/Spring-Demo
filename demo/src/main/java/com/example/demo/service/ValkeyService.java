@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.example.demo.util.LogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -11,8 +10,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class ValkeyService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ValkeyService.class);
-
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -20,30 +17,30 @@ public class ValkeyService {
      * Set a key-value pair
      */
     public void set(String key, String value) {
-        logger.debug("Setting key: {} with value: {}", key, value);
+        LogUtil.debugInfo("Setting key: {} with value: {}", key, value);
         redisTemplate.opsForValue().set(key, value);
-        logger.info("Successfully set key: {}", key);
+        LogUtil.addInfo("Successfully set key: {}", key);
     }
 
     /**
      * Set a key-value pair with expiration time
      */
     public void setWithExpiry(String key, String value, long timeout, TimeUnit timeUnit) {
-        logger.debug("Setting key: {} with value: {} and expiry: {} {}", key, value, timeout, timeUnit);
+        LogUtil.debugInfo("Setting key: {} with value: {} and expiry: {} {}", key, value, timeout, timeUnit);
         redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
-        logger.info("Successfully set key: {} with expiry", key);
+        LogUtil.addInfo("Successfully set key: {} with expiry", key);
     }
 
     /**
      * Get value by key
      */
     public String get(String key) {
-        logger.debug("Getting value for key: {}", key);
+        LogUtil.debugInfo("Getting value for key: {}", key);
         Object value = redisTemplate.opsForValue().get(key);
         if (value != null) {
-            logger.debug("Found value for key: {}", key);
+            LogUtil.debugInfo("Found value for key: {}", key);
         } else {
-            logger.warn("Key not found: {}", key);
+            LogUtil.wrongInfo("Key not found: {}", key);
         }
         return value != null ? value.toString() : null;
     }
@@ -52,9 +49,9 @@ public class ValkeyService {
      * Delete a key
      */
     public Boolean delete(String key) {
-        logger.debug("Deleting key: {}", key);
+        LogUtil.debugInfo("Deleting key: {}", key);
         Boolean result = redisTemplate.delete(key);
-        logger.info("Key {} deletion result: {}", key, result);
+        LogUtil.addInfo("Key {} deletion result: {}", key, result);
         return result;
     }
 
@@ -97,15 +94,15 @@ public class ValkeyService {
      * Test connection to Valkey
      */
     public String testConnection() {
-        logger.info("Testing Valkey connection...");
+        LogUtil.addInfo("Testing Valkey connection...");
         try {
             redisTemplate.opsForValue().set("test_connection", "success");
             String result = (String) redisTemplate.opsForValue().get("test_connection");
             redisTemplate.delete("test_connection");
-            logger.info("Valkey connection test successful!");
+            LogUtil.addInfo("Valkey connection test successful!");
             return "Connection successful! Test value: " + result;
         } catch (Exception e) {
-            logger.error("Valkey connection test failed: {}", e.getMessage(), e);
+            LogUtil.wrongInfo("Valkey connection test failed: {}", e.getMessage(), e);
             return "Connection failed: " + e.getMessage();
         }
     }
