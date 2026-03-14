@@ -1,2 +1,4 @@
 demo/start-tunnels.sh
 demo/stop-tunnels.sh
+logs/application.log
+logs/error.log
