@@ -1,7 +1,8 @@
 package com.example.demo.controller;
 
+import com.example.demo.foundation.util.LogUtil;
 import com.example.demo.service.ValkeyService;
-import com.example.demo.util.LogUtil;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

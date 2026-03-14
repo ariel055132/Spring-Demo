@@ -1,13 +1,14 @@
 package com.example.demo.service.weather;
 
 import com.example.demo.entity.Weather;
+import com.example.demo.foundation.api.BaseResponse;
 import com.example.demo.repository.WeatherRepository;
 import com.example.demo.service.weather.arg.CreateWeatherArg;
 import com.example.demo.service.weather.arg.DeleteWeatherArg;
 import com.example.demo.service.weather.arg.ReadWeatherArg;
 import com.example.demo.service.weather.arg.UpdateWeatherArg;
 import com.example.demo.service.weather.response.WeatherResponse;
-import com.example.demo.util.api.BaseResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

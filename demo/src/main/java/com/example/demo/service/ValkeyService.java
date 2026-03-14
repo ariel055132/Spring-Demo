@@ -1,12 +1,12 @@
 package com.example.demo.service;
 
-import com.example.demo.util.LogUtil;
-
 import jakarta.validation.constraints.NotBlank;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import com.example.demo.foundation.util.LogUtil;
 
 import java.util.concurrent.TimeUnit;
 

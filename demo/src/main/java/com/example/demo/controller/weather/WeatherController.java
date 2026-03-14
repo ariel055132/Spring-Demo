@@ -5,13 +5,13 @@ import com.example.demo.controller.weather.dto.CreateWeatherRequest;
 import com.example.demo.controller.weather.dto.DeleteWeatherRequest;
 import com.example.demo.controller.weather.dto.ReadWeatherRequest;
 import com.example.demo.controller.weather.dto.UpdateWeatherRequest;
+import com.example.demo.foundation.api.BaseResponse;
 import com.example.demo.service.weather.WeatherService;
 import com.example.demo.service.weather.arg.CreateWeatherArg;
 import com.example.demo.service.weather.arg.DeleteWeatherArg;
 import com.example.demo.service.weather.arg.ReadWeatherArg;
 import com.example.demo.service.weather.arg.UpdateWeatherArg;
 import com.example.demo.service.weather.response.WeatherResponse;
-import com.example.demo.util.api.BaseResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
