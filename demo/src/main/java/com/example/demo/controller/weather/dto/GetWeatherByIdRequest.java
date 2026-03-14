@@ -1,4 +1,6 @@
-package com.example.demo.dto.request;
+package com.example.demo.controller.weather.dto;
+
+import com.example.demo.util.api.BaseRequest;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

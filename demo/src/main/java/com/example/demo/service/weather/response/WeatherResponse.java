@@ -1,4 +1,4 @@
-package com.example.demo.dto.response;
+package com.example.demo.service.weather.response;
 
 import com.example.demo.entity.Weather;
 import lombok.AllArgsConstructor;

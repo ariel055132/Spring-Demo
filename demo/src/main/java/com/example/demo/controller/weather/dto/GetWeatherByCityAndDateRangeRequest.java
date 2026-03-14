@@ -1,10 +1,12 @@
-package com.example.demo.dto.request;
+package com.example.demo.controller.weather.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+
+import com.example.demo.util.api.BaseRequest;
 
 import java.time.LocalDate;
 

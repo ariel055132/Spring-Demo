@@ -1,4 +1,6 @@
-package com.example.demo.dto.request;
+package com.example.demo.controller.weather.dto;
+
+import com.example.demo.util.api.BaseRequest;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class DeleteWeatherRequest extends BaseRequest {
-    private Long id;
+public class GetWeatherByCityRequest extends BaseRequest {
+    private String city;
 }

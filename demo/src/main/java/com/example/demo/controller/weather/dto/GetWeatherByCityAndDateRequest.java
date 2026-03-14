@@ -1,9 +1,12 @@
-package com.example.demo.dto.request;
+package com.example.demo.controller.weather.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import com.example.demo.util.api.BaseRequest;
 
 import java.time.LocalDate;
 
@@ -11,11 +14,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class UpdateWeatherRequest extends BaseRequest {
-    private Long id;
+public class GetWeatherByCityAndDateRequest extends BaseRequest {
     private String city;
-    private Integer tempLo;
-    private Integer tempHi;
-    private Float prcp;
+    
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate date;
 }

@@ -1,10 +1,19 @@
-package com.example.demo.controller;
+package com.example.demo.controller.weather;
 
-import com.example.demo.dto.request.*;
-import com.example.demo.dto.response.BaseResponse;
-import com.example.demo.dto.response.WeatherResponse;
+import com.example.demo.controller.weather.converter.WeatherRequestConverter;
+import com.example.demo.controller.weather.dto.CreateWeatherRequest;
+import com.example.demo.controller.weather.dto.DeleteWeatherRequest;
+import com.example.demo.controller.weather.dto.GetWeatherByCityAndDateRangeRequest;
+import com.example.demo.controller.weather.dto.GetWeatherByCityAndDateRequest;
+import com.example.demo.controller.weather.dto.GetWeatherByCityRequest;
+import com.example.demo.controller.weather.dto.GetWeatherByIdRequest;
+import com.example.demo.controller.weather.dto.UpdateWeatherRequest;
 import com.example.demo.entity.Weather;
-import com.example.demo.service.WeatherService;
+import com.example.demo.service.weather.WeatherService;
+import com.example.demo.service.weather.arg.*;
+import com.example.demo.service.weather.response.WeatherResponse;
+import com.example.demo.util.api.BaseResponse;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,19 +29,19 @@ public class WeatherController {
 
     @Autowired
     private WeatherService weatherService;
+    
+    @Autowired
+    private WeatherRequestConverter converter;
 
     // Create
     @PostMapping("/create")
     @Operation(summary = "Create a new weather record")
     public BaseResponse<WeatherResponse> createWeather(@RequestBody CreateWeatherRequest request) {
-        Weather weather = new Weather();
-        weather.setCity(request.getCity());
-        weather.setTempLo(request.getTempLo());
-        weather.setTempHi(request.getTempHi());
-        weather.setPrcp(request.getPrcp());
-        weather.setDate(request.getDate());
+        // Convert request to arg
+        CreateWeatherArg arg = converter.toCreateArg(request);
         
-        Weather savedWeather = weatherService.saveWeather(weather);
+        // Pass arg to service layer
+        Weather savedWeather = weatherService.createWeather(arg);
         WeatherResponse response = WeatherResponse.fromEntity(savedWeather);
         
         return BaseResponse.success("Weather record created successfully", response);
@@ -75,7 +84,11 @@ public class WeatherController {
     @PostMapping("/getByCityAndDate")
     @Operation(summary = "Get weather records by city and date greater than or equal to specified date")
     public BaseResponse<List<WeatherResponse>> getWeatherByCityAndDate(@RequestBody GetWeatherByCityAndDateRequest request) {
-        List<Weather> weatherList = weatherService.getWeatherByCityAndDate(request.getCity(), request.getDate());
+        // Convert request to arg
+        QueryWeatherByCityAndDateArg arg = converter.toQueryByCityAndDateArg(request);
+        
+        // Pass arg to service layer
+        List<Weather> weatherList = weatherService.getWeatherByCityAndDate(arg);
         List<WeatherResponse> responseList = weatherList.stream()
                 .map(WeatherResponse::fromEntity)
                 .collect(Collectors.toList());
@@ -87,11 +100,11 @@ public class WeatherController {
     @PostMapping("/getByCityAndDateRange")
     @Operation(summary = "Get weather records by city and date range")
     public BaseResponse<List<WeatherResponse>> getWeatherByCityAndDateRange(@RequestBody GetWeatherByCityAndDateRangeRequest request) {
-        List<Weather> weatherList = weatherService.getWeatherByCityAndDateRange(
-                request.getCity(), 
-                request.getStartDate(), 
-                request.getEndDate()
-        );
+        // Convert request to arg
+        QueryWeatherByCityAndDateRangeArg arg = converter.toQueryByCityAndDateRangeArg(request);
+        
+        // Pass arg to service layer
+        List<Weather> weatherList = weatherService.getWeatherByCityAndDateRange(arg);
         List<WeatherResponse> responseList = weatherList.stream()
                 .map(WeatherResponse::fromEntity)
                 .collect(Collectors.toList());
@@ -104,14 +117,11 @@ public class WeatherController {
     @Operation(summary = "Update an existing weather record")
     public BaseResponse<WeatherResponse> updateWeather(@RequestBody UpdateWeatherRequest request) {
         try {
-            Weather weatherDetails = new Weather();
-            weatherDetails.setCity(request.getCity());
-            weatherDetails.setTempLo(request.getTempLo());
-            weatherDetails.setTempHi(request.getTempHi());
-            weatherDetails.setPrcp(request.getPrcp());
-            weatherDetails.setDate(request.getDate());
+            // Convert request to arg
+            UpdateWeatherArg arg = converter.toUpdateArg(request);
             
-            Weather updatedWeather = weatherService.updateWeather(request.getId(), weatherDetails);
+            // Pass arg to service layer
+            Weather updatedWeather = weatherService.updateWeather(arg);
             WeatherResponse response = WeatherResponse.fromEntity(updatedWeather);
             
             return BaseResponse.success("Weather record updated successfully", response);

@@ -1,4 +1,4 @@
-package com.example.demo.dto.request;
+package com.example.demo.controller.weather.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,19 +7,15 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
+import com.example.demo.util.api.BaseRequest;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class CreateWeatherRequest extends BaseRequest {
-    @Schema(description = "城市",  example = "Hong Kong")
-    @NotBlank
+public class UpdateWeatherRequest extends BaseRequest {
+    private Long id;
     private String city;
-
-    
     private Integer tempLo;
     private Integer tempHi;
     private Float prcp;

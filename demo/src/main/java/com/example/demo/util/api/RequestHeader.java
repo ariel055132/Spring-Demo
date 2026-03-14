@@ -1,4 +1,4 @@
-package com.example.demo.dto.request;
+package com.example.demo.util.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,11 +9,11 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BaseRequest {
+public class RequestHeader {
     private String requestId;
     private LocalDateTime timestamp;
     
-    public BaseRequest(String requestId) {
+    public RequestHeader(String requestId) {
         this.requestId = requestId;
         this.timestamp = LocalDateTime.now();
     }
