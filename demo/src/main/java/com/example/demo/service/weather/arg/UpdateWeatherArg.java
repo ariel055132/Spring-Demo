@@ -9,10 +9,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateWeatherArg {
-    private Long id;
     private String city;
+    private LocalDate date;
     private Integer tempLo;
     private Integer tempHi;
     private Float prcp;
-    private LocalDate date;
 }

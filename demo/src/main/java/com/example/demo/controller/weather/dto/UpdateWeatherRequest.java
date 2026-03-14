@@ -14,10 +14,9 @@ import com.example.demo.util.api.BaseRequest;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class UpdateWeatherRequest extends BaseRequest {
-    private Long id;
     private String city;
+    private LocalDate date;
     private Integer tempLo;
     private Integer tempHi;
     private Float prcp;
-    private LocalDate date;
 }

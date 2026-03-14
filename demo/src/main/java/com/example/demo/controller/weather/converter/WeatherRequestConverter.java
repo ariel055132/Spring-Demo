@@ -26,12 +26,11 @@ public class WeatherRequestConverter {
 
     public UpdateWeatherArg toUpdateArg(UpdateWeatherRequest request) {
         return UpdateWeatherArg.builder()
-                .id(request.getId())
                 .city(request.getCity())
+                .date(request.getDate())
                 .tempLo(request.getTempLo())
                 .tempHi(request.getTempHi())
                 .prcp(request.getPrcp())
-                .date(request.getDate())
                 .build();
     }
 
