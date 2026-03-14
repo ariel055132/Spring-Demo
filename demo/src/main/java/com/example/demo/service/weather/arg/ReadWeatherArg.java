@@ -1,6 +1,9 @@
 package com.example.demo.service.weather.arg;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
@@ -8,7 +11,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class QueryWeatherByCityAndDateArg {
+public class ReadWeatherArg {
     private String city;
     private LocalDate date;
 }

@@ -2,7 +2,10 @@ package com.example.demo.service.weather;
 
 import com.example.demo.entity.Weather;
 import com.example.demo.repository.WeatherRepository;
-import com.example.demo.service.weather.arg.*;
+import com.example.demo.service.weather.arg.CreateWeatherArg;
+import com.example.demo.service.weather.arg.DeleteWeatherArg;
+import com.example.demo.service.weather.arg.ReadWeatherArg;
+import com.example.demo.service.weather.arg.UpdateWeatherArg;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,23 +40,9 @@ public class WeatherService {
         return weatherRepository.findById(id);
     }
 
-    // Read - Get by city
-    public List<Weather> getWeatherByCity(String city) {
-        return weatherRepository.findByCity(city);
-    }
-
-    // Read - Get by city and date greater than or equal
-    public List<Weather> getWeatherByCityAndDate(QueryWeatherByCityAndDateArg arg) {
-        return weatherRepository.findByCityAndDateGreaterThanEqual(arg.getCity(), arg.getDate());
-    }
-
-    // Read - Get by city and date range
-    public List<Weather> getWeatherByCityAndDateRange(QueryWeatherByCityAndDateRangeArg arg) {
-        return weatherRepository.findByCityAndDateBetween(
-                arg.getCity(), 
-                arg.getStartDate(), 
-                arg.getEndDate()
-        );
+    // Read - Get by city and date
+    public List<Weather> readWeather(ReadWeatherArg arg) {
+        return weatherRepository.findByCityAndDate(arg.getCity(), arg.getDate());
     }
 
     // Update
@@ -73,6 +62,11 @@ public class WeatherService {
     // Delete
     public void deleteWeather(Long id) {
         weatherRepository.deleteById(id);
+    }
+
+    // Delete by city and date
+    public void deleteWeatherByCityAndDate(DeleteWeatherArg arg) {
+        weatherRepository.deleteByCityAndDate(arg.getCity(), arg.getDate());
     }
 
     // Delete all

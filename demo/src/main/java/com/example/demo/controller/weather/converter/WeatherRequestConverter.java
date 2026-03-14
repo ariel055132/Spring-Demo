@@ -17,6 +17,13 @@ public class WeatherRequestConverter {
                 .build();
     }
 
+    public ReadWeatherArg toReadArg(ReadWeatherRequest request) {
+        return ReadWeatherArg.builder()
+                .city(request.getCity())
+                .date(request.getDate())
+                .build();
+    }
+
     public UpdateWeatherArg toUpdateArg(UpdateWeatherRequest request) {
         return UpdateWeatherArg.builder()
                 .id(request.getId())
@@ -28,18 +35,10 @@ public class WeatherRequestConverter {
                 .build();
     }
 
-    public QueryWeatherByCityAndDateArg toQueryByCityAndDateArg(GetWeatherByCityAndDateRequest request) {
-        return QueryWeatherByCityAndDateArg.builder()
+    public DeleteWeatherArg toDeleteArg(DeleteWeatherRequest request) {
+        return DeleteWeatherArg.builder()
                 .city(request.getCity())
                 .date(request.getDate())
-                .build();
-    }
-
-    public QueryWeatherByCityAndDateRangeArg toQueryByCityAndDateRangeArg(GetWeatherByCityAndDateRangeRequest request) {
-        return QueryWeatherByCityAndDateRangeArg.builder()
-                .city(request.getCity())
-                .startDate(request.getStartDate())
-                .endDate(request.getEndDate())
                 .build();
     }
 }

@@ -1,6 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.util.LogUtil;
+
+import jakarta.validation.constraints.NotBlank;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -16,7 +19,7 @@ public class ValkeyService {
     /**
      * Set a key-value pair
      */
-    public void set(String key, String value) {
+    public void set(@NotBlank String key, @NotBlank String value) {
         LogUtil.debugInfo("Setting key: {} with value: {}", key, value);
         redisTemplate.opsForValue().set(key, value);
         LogUtil.addInfo("Successfully set key: {}", key);

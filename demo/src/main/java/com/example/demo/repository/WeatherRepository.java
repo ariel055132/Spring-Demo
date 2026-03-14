@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,6 +22,13 @@ public interface WeatherRepository extends JpaRepository<Weather, Long> {
     
     // Bonus: Find by city only
     List<Weather> findByCity(String city);
+    
+    // Find by city and exact date
+    List<Weather> findByCityAndDate(String city, LocalDate date);
+    
+    // Delete by city and exact date
+    @Transactional
+    void deleteByCityAndDate(String city, LocalDate date);
     
     // Bonus: Find by date range
     List<Weather> findByCityAndDateBetween(String city, LocalDate startDate, LocalDate endDate);
