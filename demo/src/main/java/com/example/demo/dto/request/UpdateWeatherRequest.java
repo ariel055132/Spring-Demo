@@ -1,0 +1,21 @@
+package com.example.demo.dto.request;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class UpdateWeatherRequest extends BaseRequest {
+    private Long id;
+    private String city;
+    private Integer tempLo;
+    private Integer tempHi;
+    private Float prcp;
+    private LocalDate date;
+}
