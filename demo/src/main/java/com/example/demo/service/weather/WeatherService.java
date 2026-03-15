@@ -2,11 +2,14 @@ package com.example.demo.service.weather;
 
 import com.example.demo.entity.Weather;
 import com.example.demo.foundation.api.BaseResponse;
+import com.example.demo.foundation.checker.CheckType;
+import com.example.demo.foundation.checker.PreCheck;
 import com.example.demo.repository.WeatherRepository;
 import com.example.demo.service.weather.arg.CreateWeatherArg;
 import com.example.demo.service.weather.arg.DeleteWeatherArg;
 import com.example.demo.service.weather.arg.ReadWeatherArg;
 import com.example.demo.service.weather.arg.UpdateWeatherArg;
+import com.example.demo.service.weather.checker.WeatherCheckMessageEnum;
 import com.example.demo.service.weather.response.WeatherResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,7 @@ public class WeatherService {
     private WeatherRepository weatherRepository;
 
     // Create
+    @PreCheck(value = CheckType.CREATE, message = WeatherCheckMessageEnum.CREATE_DUPLICATE)
     public BaseResponse<WeatherResponse> create(CreateWeatherArg arg) {
         Weather weather = new Weather();
         weather.setCity(arg.getCity());
@@ -50,13 +54,10 @@ public class WeatherService {
     }
 
     // Update
+    @PreCheck(value = CheckType.UPDATE, message = WeatherCheckMessageEnum.UPDATE_NOT_FOUND)
     public BaseResponse<WeatherResponse> update(UpdateWeatherArg arg) {
         try {
             List<Weather> weatherList = weatherRepository.findByCityAndDate(arg.getCity(), arg.getDate());
-            
-            if (weatherList.isEmpty()) {
-                return BaseResponse.error("No weather record found for city: " + arg.getCity() + " on date: " + arg.getDate());
-            }
             
             // Update the first matching record
             Weather weather = weatherList.get(0);
@@ -71,8 +72,9 @@ public class WeatherService {
             return BaseResponse.error(e.getMessage());
         }
     }
-
+    
     // Delete by city and date
+    @PreCheck(value = CheckType.DELETE, message = WeatherCheckMessageEnum.DELETE_NOT_FOUND)
     public BaseResponse<Void> delete(DeleteWeatherArg arg) {
         try {
             weatherRepository.deleteByCityAndDate(arg.getCity(), arg.getDate());
