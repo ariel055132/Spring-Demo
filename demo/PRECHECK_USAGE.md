@@ -2,52 +2,45 @@
 
 ## Usage Example
 
-Use the `@PreCheck` annotation with centralized message enums for better management:
+Use the `@PreCheck` annotation with checker class references for automatic validation:
 
 ```java
-// ✅ RECOMMENDED - Enum-based messages (centralized management)
-@PreCheck(value = CheckType.CREATE, message = WeatherCheckMessage.CREATE_DUPLICATE)
+// ✅ RECOMMENDED - Class-based annotation
+@PreCheck(CreateWeatherChecker.class)
 public BaseResponse<WeatherResponse> create(CreateWeatherArg arg) {
-    // Your business logic here
+    // Your business logic here - validation happens automatically via AOP
     Weather weather = new Weather();
     weather.setCity(arg.getCity());
-    // ... rest of the code
+    weather.setTempLo(arg.getTempLo());
+    weather.setTempHi(arg.getTempHi());
+    weather.setPrcp(arg.getPrcp());
+    weather.setDate(arg.getDate());
+    
+    Weather savedWeather = weatherRepository.save(weather);
+    WeatherResponse response = WeatherResponse.fromEntity(savedWeather);
+    return BaseResponse.success("Weather record created successfully", response);
 }
 
 // ❌ OLD WAY - Manual checker calls (no longer needed)
 public BaseResponse<WeatherResponse> create(CreateWeatherArg arg) {
-    weatherChecker.CreateWeatherChecker(arg, 
-        String.format("Weather data already exists for %s on %s", arg.getCity(), arg.getDate()));
+    // Manual validation - error prone and verbose
+    if (weatherRepository.findByCityAndDate(arg.getCity(), arg.getDate()) != null) {
+        throw new IllegalStateException("Weather data already exists");
+    }
     // business logic
 }
 ```
 
-## WeatherCheckMessage Enum
-
-All error messages are centralized in the `WeatherCheckMessage` enum:
-
-```java
-public enum WeatherCheckMessage {
-    CREATE_DUPLICATE("Weather data already exists for {city} on {date}"),
-    UPDATE_NOT_FOUND("No weather data found for {city} on {date}. Unable to update."),
-    DELETE_NOT_FOUND("No weather data found for {city} on {date}. Unable to delete.");
-    
-    // Messages support placeholders: {city}, {date}
-}
-```
-
-**Benefits:**
-- ✅ Centralized message management
-- ✅ Easy to update messages in one place
-- ✅ IntelliSense support in IDE
-- ✅ No typos in message strings
-- ✅ Reusable across multiple services
+**Key Benefits:**
+- ✅ Clean, declarative code
+- ✅ Type-safe class references
+- ✅ IDE navigation support (click on checker class to view)
+- ✅ Compile-time verification
+- ✅ AOP handles validation transparently
 
 ## Complete WeatherService Example
 
 ```java
-import com.example.demo.service.weather.checker.WeatherCheckMessage;
-
 @Service
 public class WeatherService {
 
@@ -55,7 +48,7 @@ public class WeatherService {
     private WeatherRepository weatherRepository;
 
     // CREATE - Check for duplicates
-    @PreCheck(value = CheckType.CREATE, message = WeatherCheckMessage.CREATE_DUPLICATE)
+    @PreCheck(CreateWeatherChecker.class)
     public BaseResponse<WeatherResponse> create(CreateWeatherArg arg) {
         Weather weather = new Weather();
         weather.setCity(arg.getCity());
@@ -70,11 +63,10 @@ public class WeatherService {
     }
 
     // UPDATE - Check if data exists
-    @PreCheck(value = CheckType.UPDATE, message = WeatherCheckMessage.UPDATE_NOT_FOUND)
+    @PreCheck(UpdateWeatherChecker.class)
     public BaseResponse<WeatherResponse> update(UpdateWeatherArg arg) {
-        List<Weather> weatherList = weatherRepository.findByCityAndDate(arg.getCity(), arg.getDate());
+        Weather weather = weatherRepository.findByCityAndDate(arg.getCity(), arg.getDate());
         
-        Weather weather = weatherList.get(0);
         weather.setTempLo(arg.getTempLo());
         weather.setTempHi(arg.getTempHi());
         weather.setPrcp(arg.getPrcp());
@@ -85,7 +77,7 @@ public class WeatherService {
     }
 
     // DELETE - Check if data exists
-    @PreCheck(value = CheckType.DELETE, message = WeatherCheckMessage.DELETE_NOT_FOUND)
+    @PreCheck(DeleteWeatherChecker.class)
     public BaseResponse<Void> delete(DeleteWeatherArg arg) {
         weatherRepository.deleteByCityAndDate(arg.getCity(), arg.getDate());
         return BaseResponse.success("Weather record(s) deleted successfully", null);
@@ -95,90 +87,103 @@ public class WeatherService {
 
 ## How It Works
 
-1. **Annotation on Method**: Add `@PreCheck` to your service method
-2. **Specify CheckType**: `CREATE`, `UPDATE`, or `DELETE`
-3. **Custom Message**: Define your error message with `{placeholders}`
-4. **AOP Magic**: `PreCheckAspect` intercepts the call and validates automatically
-5. **WeatherChecker**: The aspect calls the appropriate checker method
-6. **Exception Thrown**: If validation fails, exception is thrown with your message
+```
+┌──────────────────────────────────────────────────────────────┐
+│  1. Service Method Call                                      │
+│     @PreCheck(CreateWeatherChecker.class)                    │
+│     public BaseResponse<WeatherResponse> create(...)         │
+└────────────────────┬─────────────────────────────────────────┘
+                     │
+                     ▼
+┌──────────────────────────────────────────────────────────────┐
+│  2. PreCheckAspect Intercepts                                │
+│     - Gets CreateWeatherChecker.class from annotation        │
+│     - Retrieves bean from Spring ApplicationContext          │
+└────────────────────┬─────────────────────────────────────────┘
+                     │
+                     ▼
+┌──────────────────────────────────────────────────────────────┐
+│  3. CreateWeatherChecker.doCheck(arg)                        │
+│     - Validates no duplicate exists                          │
+│     - Throws IllegalStateException if duplicate found        │
+└────────────────────┬─────────────────────────────────────────┘
+                     │
+                     ▼
+┌──────────────────────────────────────────────────────────────┐
+│  4. If Valid: Service Method Executes                        │
+│     If Invalid: GlobalExceptionHandler converts to HTTP      │
+└──────────────────────────────────────────────────────────────┘
+```
 
-Message templates in the enum support placeholders that are automatically replaced:
+## Checker Implementation Pattern
+
+### Entity Base Checker
 
 ```java
-public enum WeatherCheckMessage {
-    CREATE_DUPLICATE("Weather data already exists for {city} on {date}"),
-    // Placeholders {city} and {date} are replaced at runtime
+@Component
+public abstract class WeatherChecker extends BaseChecker {
+    
+    @Autowired
+    protected WeatherRepository weatherRepository;
+
+    protected boolean isWeatherExist(String city, LocalDate date) {
+        Weather weather = weatherRepository.findByCityAndDate(city, date);
+        return weather != null;
+    }
 }
 ```
 
-Available placeholders:
-- `{city}` - Replaced with `arg.getCity()`
-- `{date}` - Replaced with `arg.getDate()`
+### Operation-Specific Checker
 
-Example result: `"Weather data already exists for Hong Kong on 2026-03-15"`
-
-## Adding New Messages
-
-To add a new validation message:
-
-1. **Add to WeatherCheckMessage enum:**
 ```java
-public enum WeatherCheckMessage {
+@Component
+public class CreateWeatherChecker extends WeatherChecker {
+    
+    @Override
+    public void doCheck(Object arg) {
+        if (!(arg instanceof CreateWeatherArg)) {
+            throw new IllegalArgumentException("CreateWeatherChecker requires CreateWeatherArg");
+        }
+        
+        CreateWeatherArg createArg = (CreateWeatherArg) arg;
+        
+        if (isWeatherExist(createArg.getCity(), createArg.getDate())) {
+            String errorMessage = WeatherCheckMessageEnum.CREATE_DUPLICATE.getMessage(
+                createArg.getCity(), 
+                createArg.getDate().toString()
+            );
+            throw new IllegalStateException(errorMessage);
+        }
+    }
+}
+```
+
+### Message Enum
+
+```java
+public enum WeatherCheckMessageEnum {
+    
     CREATE_DUPLICATE("Weather data already exists for {city} on {date}"),
     UPDATE_NOT_FOUND("No weather data found for {city} on {date}. Unable to update."),
-    DELETE_NOT_FOUND("No weather data found for {city} on {date}. Unable to delete."),
-    
-    // Add your new message here
-    CUSTOM_VALIDATION("Your custom message with {city} and {date}");
+    DELETE_NOT_FOUND("No weather data found for {city} on {date}. Unable to delete.");
     
     private final String messageTemplate;
-    // ... rest of enum code
-}entralized Messages**: All error messages in one enum for easy management  
-✅ **IDE Support**: IntelliSense helps you choose the right message  
-✅ **No Typos**: Compile-time checking of message references  
-✅ **Consistent**: Same pattern across all CRUD operations  
-✅ **DRY**: No repeated validation code  
-✅ **Maintainable**: Change message text in one place, affects all usages
-```java
-@PreCheck(value = CheckType.CREATE, message = WeatherCheckMessage.CUSTOM_VALIDATION)
-public BaseResponse<WeatherResponse> yourMethod(CreateWeatherArg arg) {
-    // business logic
-}
-``
-
-Example result: `"Weather data already exists for Hong Kong on 2026-03-15"`
-
-## CheckType Values
-
-```java
-public enum CheckType {
-    CREATE,   // Throws DuplicateDataException if data exists
-    UPDATE,   // Throws DataNotFoundException if data doesn't exist
-    DELETE    // Throws DataNotFoundException if data doesn't exist
+    
+    WeatherCheckMessageEnum(String messageTemplate) {
+        this.messageTemplate = messageTemplate;
+    }
+    
+    public String getMessage(String city, String date) {
+        return messageTemplate
+                .replace("{city}", city != null ? city : "null")
+                .replace("{date}", date != null ? date : "null");
+    }
 }
 ```
 
-## Benefits
+## Error Responses
 
-✅ **Clean Code**: No manual checker calls cluttering your business logic  
-✅ **Declarative**: Annotation clearly shows what validation is happening  
-✅ **Consistent**: Same pattern across all CRUD operations  
-✅ **DRY**: No repeated validation code  
-✅ **Readable**: Error messages defined right at the method level  
-✅ **Maintainable**: Change validation logic in one place (PreCheckAspect)
-
-## Response Examples
-
-### Success (200 OK)
-```json
-{
-  "success": true,
-  "message": "Weather record created successfully",
-  "data": { "id": 1, "city": "Hong Kong", ... }
-}
-```
-
-### Duplicate Error (409 Conflict)
+### Duplicate Found (CREATE)
 ```json
 {
   "success": false,
@@ -186,8 +191,9 @@ public enum CheckType {
   "data": null
 }
 ```
+**HTTP Status:** 409 Conflict
 
-### Not Found Error (404 Not Found)
+### Data Not Found (UPDATE/DELETE)
 ```json
 {
   "success": false,
@@ -195,28 +201,152 @@ public enum CheckType {
   "data": null
 }
 ```
+**HTTP Status:** 404 Not Found
 
-## Architecture
+## Adding New Entity Checkers
 
+### Step 1: Create Entity Base Checker
+
+```java
+package com.example.demo.service.user.checker;
+
+@Component
+public abstract class UserChecker extends BaseChecker {
+    
+    @Autowired
+    protected UserRepository userRepository;
+
+    protected boolean isUserExist(Long id) {
+        return userRepository.findById(id).isPresent();
+    }
+    
+    protected boolean isEmailExist(String email) {
+        return userRepository.findByEmail(email) != null;
+    }
+}
 ```
-@PreCheck Annotation
-        ↓
-PreCheckAspect (AOP)
-        ↓
-WeatherChecker
-        ↓
-WeatherRepository
-        ↓
-Database Query
-        ↓
-Exception or Continue
+
+### Step 2: Create Message Enum
+
+```java
+public enum UserCheckMessageEnum {
+    
+    CREATE_DUPLICATE("User with email {email} already exists"),
+    UPDATE_NOT_FOUND("User with ID {id} not found. Unable to update."),
+    DELETE_NOT_FOUND("User with ID {id} not found. Unable to delete.");
+    
+    private final String messageTemplate;
+    
+    UserCheckMessageEnum(String messageTemplate) {
+        this.messageTemplate = messageTemplate;
+    }
+    
+    public String getMessage(String value) {
+        return messageTemplate
+                .replace("{email}", value)
+                .replace("{id}", value);
+    }
+}
 ```
 
-## Creating Your Own Checker
+### Step 3: Create Operation Checkers
 
-For other entities, follow this pattern:
+```java
+@Component
+public class CreateUserChecker extends UserChecker {
+    
+    @Override
+    public void doCheck(Object arg) {
+        if (!(arg instanceof CreateUserArg)) {
+            throw new IllegalArgumentException("CreateUserChecker requires CreateUserArg");
+        }
+        
+        CreateUserArg createArg = (CreateUserArg) arg;
+        
+        if (isEmailExist(createArg.getEmail())) {
+            String errorMessage = UserCheckMessageEnum.CREATE_DUPLICATE
+                .getMessage(createArg.getEmail());
+            throw new IllegalStateException(errorMessage);
+        }
+    }
+}
 
-1. Create a checker class in `service/yourentity/checker/`
-2. Inject it into `PreCheckAspect`
-3. Add case handling in `PreCheckAspect.performPreCheck()`
-4. Use `@PreCheck` annotation on your service methods
+@Component
+public class UpdateUserChecker extends UserChecker {
+    
+    @Override
+    public void doCheck(Object arg) {
+        if (!(arg instanceof UpdateUserArg)) {
+            throw new IllegalArgumentException("UpdateUserChecker requires UpdateUserArg");
+        }
+        
+        UpdateUserArg updateArg = (UpdateUserArg) arg;
+        
+        if (!isUserExist(updateArg.getId())) {
+            String errorMessage = UserCheckMessageEnum.UPDATE_NOT_FOUND
+                .getMessage(updateArg.getId().toString());
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
+}
+```
+
+### Step 4: Use in Service
+
+```java
+@Service
+public class UserService {
+    
+    @PreCheck(CreateUserChecker.class)
+    public BaseResponse<UserResponse> create(CreateUserArg arg) {
+        // Validation happens automatically
+        User user = new User();
+        user.setEmail(arg.getEmail());
+        user.setName(arg.getName());
+        return userRepository.save(user);
+    }
+    
+    @PreCheck(UpdateUserChecker.class)
+    public BaseResponse<UserResponse> update(UpdateUserArg arg) {
+        // Validation happens automatically
+        User user = userRepository.findById(arg.getId()).get();
+        user.setName(arg.getName());
+        return userRepository.save(user);
+    }
+    
+    @PreCheck(DeleteUserChecker.class)
+    public BaseResponse<Void> delete(DeleteUserArg arg) {
+        // Validation happens automatically
+        userRepository.deleteById(arg.getId());
+        return BaseResponse.success("User deleted successfully");
+    }
+}
+```
+
+## Best Practices
+
+### ✅ DO
+- Use class-based `@PreCheck` annotations
+- Create separate checker classes for each operation (Create/Update/Delete)
+- Centralize error messages in enum classes
+- Throw `IllegalStateException` for duplicates (CREATE)
+- Throw `IllegalArgumentException` for not found (UPDATE/DELETE)
+- Type check arguments early in `doCheck()`
+
+### ❌ DON'T
+- Don't put all validation in one checker class
+- Don't hardcode error messages in checker classes
+- Don't manually call checker methods - use `@PreCheck` annotation
+- Don't use custom exception classes - use standard Java exceptions
+- Don't skip type checking in `doCheck()` method
+
+## Summary
+
+The `@PreCheck` framework provides:
+- **Class-based annotations** for type safety and IDE support
+- **Self-contained checkers** with clear responsibilities
+- **Automatic validation** via Spring AOP
+- **Standard exception handling** with proper HTTP status codes
+- **Easy extensibility** for new entities and operations
+
+For complete architecture details, see [PRECHECK_GUIDE.md](PRECHECK_GUIDE.md).

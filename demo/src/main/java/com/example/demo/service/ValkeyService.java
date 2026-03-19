@@ -21,8 +21,12 @@ public class ValkeyService {
      */
     public void set(@NotBlank String key, @NotBlank String value) {
         LogUtil.debugInfo("Setting key: {} with value: {}", key, value);
-        redisTemplate.opsForValue().set(key, value);
-        LogUtil.addInfo("Successfully set key: {}", key);
+        if (key != null && value != null) {
+            redisTemplate.opsForValue().set(key, value);
+            LogUtil.addInfo("Successfully set key: {}", key);
+        } else {
+            LogUtil.debugInfo("key or value is null");
+        }
     }
 
     /**

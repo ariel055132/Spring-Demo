@@ -1,15 +1,11 @@
 package com.example.demo.foundation.checker;
 
-import com.example.demo.service.weather.arg.CreateWeatherArg;
-import com.example.demo.service.weather.arg.DeleteWeatherArg;
-import com.example.demo.service.weather.arg.UpdateWeatherArg;
-import com.example.demo.service.weather.checker.WeatherChecker;
-import com.example.demo.service.weather.checker.WeatherCheckMessageEnum;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -17,13 +13,14 @@ import java.lang.reflect.Method;
 /**
  * AOP Aspect for intercepting methods annotated with @PreCheck
  * Validates data existence/duplication before executing business logic
+ * Uses PreCheckHandler beans to perform validation
  */
 @Aspect
 @Component
 public class PreCheckAspect {
     
     @Autowired
-    private WeatherChecker weatherChecker;
+    private ApplicationContext applicationContext;
     
     /**
      * Intercept methods annotated with @PreCheck and perform validation
@@ -45,91 +42,16 @@ public class PreCheckAspect {
         }
         
         Object arg = args[0];
-        CheckType checkType = preCheck.value();
-        WeatherCheckMessageEnum messageEnum = preCheck.message();
-        
-        // Get message template from enum and process placeholders
-        String messageTemplate = messageEnum.getMessageTemplate();
-        String processedMessage = processMessagePlaceholders(messageTemplate, arg);
-        
-        // Call appropriate checker method based on operation type and arg type
-        switch (checkType) {
-            case CREATE:
-                if (arg instanceof CreateWeatherArg) {
-                    weatherChecker.CreateWeatherChecker((CreateWeatherArg) arg, processedMessage);
-                } else {
-                    throw new IllegalArgumentException("CREATE check requires CreateWeatherArg");
-                }
-                break;
-            case UPDATE:
-                if (arg instanceof UpdateWeatherArg) {
-                    weatherChecker.UpdateWeatherChecker((UpdateWeatherArg) arg, processedMessage);
-                } else {
-                    throw new IllegalArgumentException("UPDATE check requires UpdateWeatherArg");
-                }
-                break;
-            case DELETE:
-                if (arg instanceof DeleteWeatherArg) {
-                    weatherChecker.DeleteWeatherChecker((DeleteWeatherArg) arg, processedMessage);
-                } else {
-                    throw new IllegalArgumentException("DELETE check requires DeleteWeatherArg");
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown check type: " + checkType);
-        }
-    }
-    
-    /**
-     * Process message placeholders like {city}, {date} with actual values from arg
-     */
-    private String processMessagePlaceholders(String message, Object arg) {
-        String result = message;
-        
-        try {
-            // Use reflection to replace placeholders
-            if (message.contains("{city}")) {
-                Object city = getFieldValue(arg, "city");
-                result = result.replace("{city}", city != null ? city.toString() : "null");
-            }
-            if (message.contains("{date}")) {
-                Object date = getFieldValue(arg, "date");
-                result = result.replace("{date}", date != null ? date.toString() : "null");
-            }
-        } catch (Exception e) {
-            // If placeholder replacement fails, return original message
-            return message;
+        if (arg == null) {
+            throw new IllegalArgumentException("PreCheck validation argument cannot be null");
         }
         
-        return result;
-    }
-    
-    /**
-     * Get field value using reflection
-     */
-    private Object getFieldValue(Object obj, String fieldName) throws Exception {
-        Class<?> clazz = obj.getClass();
-        java.lang.reflect.Field field = findField(clazz, fieldName);
+        Class<? extends PreCheckHandler<?>> checkerClass = preCheck.value();
         
-        if (field == null) {
-            return null;
-        }
+        // Get the checker bean from Spring context
+        PreCheckHandler<?> handler = applicationContext.getBean(checkerClass);
         
-        field.setAccessible(true);
-        return field.get(obj);
-    }
-    
-    /**
-     * Find field in class hierarchy
-     */
-    private java.lang.reflect.Field findField(Class<?> clazz, String fieldName) {
-        while (clazz != null) {
-            try {
-                return clazz.getDeclaredField(fieldName);
-            } catch (NoSuchFieldException e) {
-                clazz = clazz.getSuperclass();
-            }
-        }
-        return null;
+        // Delegate to handler to perform validation
+        handler.doCheck(arg);
     }
 }

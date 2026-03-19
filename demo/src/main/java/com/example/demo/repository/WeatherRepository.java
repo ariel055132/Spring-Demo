@@ -24,7 +24,7 @@ public interface WeatherRepository extends JpaRepository<Weather, Long> {
     List<Weather> findByCity(String city);
     
     // Find by city and exact date
-    List<Weather> findByCityAndDate(String city, LocalDate date);
+    Weather findByCityAndDate(String city, LocalDate date);
     
     // Delete by city and exact date
     @Transactional

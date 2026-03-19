@@ -10,29 +10,29 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * Global exception handler for REST controllers
- * Handles custom validation exceptions from PreCheck
+ * Handles validation exceptions from PreCheck using standard Java exceptions
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
     
     /**
-     * Handle duplicate data exceptions (CREATE operations)
+     * Handle illegal state exceptions (duplicate data, CREATE operations)
      * Returns 409 Conflict
      */
-    @ExceptionHandler(DuplicateDataException.class)
+    @ExceptionHandler(IllegalStateException.class)
     @ResponseBody
-    public ResponseEntity<BaseResponse<Void>> handleDuplicateDataException(DuplicateDataException ex) {
+    public ResponseEntity<BaseResponse<Void>> handleIllegalStateException(IllegalStateException ex) {
         BaseResponse<Void> response = BaseResponse.error(ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
     
     /**
-     * Handle data not found exceptions (UPDATE/DELETE operations)
+     * Handle illegal argument exceptions (data not found, UPDATE/DELETE operations)
      * Returns 404 Not Found
      */
-    @ExceptionHandler(DataNotFoundException.class)
+    @ExceptionHandler(IllegalArgumentException.class)
     @ResponseBody
-    public ResponseEntity<BaseResponse<Void>> handleDataNotFoundException(DataNotFoundException ex) {
+    public ResponseEntity<BaseResponse<Void>> handleIllegalArgumentException(IllegalArgumentException ex) {
         BaseResponse<Void> response = BaseResponse.error(ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
