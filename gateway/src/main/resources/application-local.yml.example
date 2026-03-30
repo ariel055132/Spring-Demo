@@ -1,0 +1,21 @@
+# Local Development Configuration Example
+# 
+# Copy this file to application-local.yml and update with your actual credentials
+# application-local.yml is gitignored and will not be committed
+#
+# To use: spring.profiles.active=local
+# Or: Place your actual credentials in environment variables (recommended for production)
+
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6378
+      username: default
+      password: YOUR_REDIS_PASSWORD_HERE
+      database: 0
+
+# JWT Configuration (if different from defaults)
+jwt:
+  secret: YOUR_JWT_SECRET_HERE_MIN_256_BITS
+  expiration: 3600000  # 1 hour in milliseconds

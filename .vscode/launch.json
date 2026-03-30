@@ -2,6 +2,19 @@
     "configurations": [
         {
             "type": "java",
+            "name": "GatewayApplication",
+            "request": "launch",
+            "mainClass": "com.example.gateway.GatewayApplication",
+            "projectName": "gateway"
+        },
+        {
+            "type": "java",
+            "name": "GatewayApplication",
+            "request": "launch",
+            "mainClass": "main.java.com.example.gateway.GatewayApplication"
+        },
+        {
+            "type": "java",
             "name": "Spring Boot-DemoApplication<demo>",
             "request": "launch",
             "cwd": "${workspaceFolder}",

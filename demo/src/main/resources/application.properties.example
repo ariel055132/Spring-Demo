@@ -1,5 +1,8 @@
 spring.application.name=demo
 
+# Server Configuration (Changed from default 8080 to 8081 for API Gateway)
+server.port=8081
+
 # Valkey/Redis Connection Settings
 spring.data.redis.host=your_valkey_host_here
 spring.data.redis.port=6378

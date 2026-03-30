@@ -3,3 +3,8 @@ demo/stop-tunnels.sh
 logs/application.log
 logs/error.log
 logs/application-*.*.log
+logs/backend.log
+logs/error-*.*.log
+logs/gateway.log
+logs/gateway.log.*-*.log
+logs/gateway-*.*.log

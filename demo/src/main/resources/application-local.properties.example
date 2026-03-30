@@ -1,0 +1,16 @@
+# Local Development Configuration Example
+# 
+# Copy this file to application-local.properties and update with your actual credentials
+# application-local.properties is gitignored and will not be committed
+
+# Redis/Valkey Configuration
+spring.data.redis.host=localhost
+spring.data.redis.port=6378
+spring.data.redis.username=default
+spring.data.redis.password=YOUR_REDIS_PASSWORD_HERE
+spring.data.redis.database=0
+
+# PostgreSQL Configuration (if different from defaults)
+# spring.datasource.url=jdbc:postgresql://localhost:5432/weatherdb
+# spring.datasource.username=postgres
+# spring.datasource.password=YOUR_POSTGRES_PASSWORD_HERE
