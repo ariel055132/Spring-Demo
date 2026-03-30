@@ -1,6 +1,6 @@
 package com.example.demo.service.weather.checker;
 
-import com.example.demo.foundation.checker.CheckMessage;
+import com.example.foundation.checker.CheckMessage;
 
 /**
  * Centralized error messages for Weather validation

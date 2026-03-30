@@ -5,7 +5,7 @@
 
 # Redis/Valkey Configuration
 spring.data.redis.host=localhost
-spring.data.redis.port=6378
+spring.data.redis.port=port
 spring.data.redis.username=default
 spring.data.redis.password=YOUR_REDIS_PASSWORD_HERE
 spring.data.redis.database=0

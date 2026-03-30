@@ -1,4 +1,4 @@
-package com.example.demo.foundation.checker;
+package com.example.foundation.checker;
 
 import org.springframework.stereotype.Component;
 

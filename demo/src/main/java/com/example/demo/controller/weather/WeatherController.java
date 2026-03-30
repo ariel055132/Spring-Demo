@@ -5,7 +5,7 @@ import com.example.demo.controller.weather.dto.CreateWeatherRequest;
 import com.example.demo.controller.weather.dto.DeleteWeatherRequest;
 import com.example.demo.controller.weather.dto.ReadWeatherRequest;
 import com.example.demo.controller.weather.dto.UpdateWeatherRequest;
-import com.example.demo.foundation.api.BaseResponse;
+import com.example.foundation.api.BaseResponse;
 import com.example.demo.service.weather.WeatherService;
 import com.example.demo.service.weather.arg.CreateWeatherArg;
 import com.example.demo.service.weather.arg.DeleteWeatherArg;

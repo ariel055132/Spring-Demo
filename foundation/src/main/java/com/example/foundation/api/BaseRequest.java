@@ -1,4 +1,4 @@
-package com.example.demo.foundation.api;
+package com.example.foundation.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

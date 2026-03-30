@@ -1,6 +1,6 @@
-package com.example.demo.foundation.exception;
+package com.example.foundation.exception;
 
-import com.example.demo.foundation.api.BaseResponse;
+import com.example.foundation.api.BaseResponse;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

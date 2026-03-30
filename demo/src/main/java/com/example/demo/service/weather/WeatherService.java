@@ -1,8 +1,8 @@
 package com.example.demo.service.weather;
 
 import com.example.demo.entity.Weather;
-import com.example.demo.foundation.api.BaseResponse;
-import com.example.demo.foundation.checker.PreCheck;
+import com.example.foundation.api.BaseResponse;
+import com.example.foundation.checker.PreCheck;
 import com.example.demo.repository.WeatherRepository;
 import com.example.demo.service.weather.arg.CreateWeatherArg;
 import com.example.demo.service.weather.arg.DeleteWeatherArg;

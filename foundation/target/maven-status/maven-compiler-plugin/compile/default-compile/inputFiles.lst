@@ -1,0 +1,10 @@
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/api/BaseRequest.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/api/BaseResponse.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/api/RequestHeader.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/checker/BaseChecker.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/checker/CheckMessage.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/checker/PreCheck.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/checker/PreCheckAspect.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/checker/PreCheckHandler.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/exception/GlobalExceptionHandler.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/util/LogUtil.java

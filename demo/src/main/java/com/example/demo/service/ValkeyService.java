@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.foundation.util.LogUtil;
+import com.example.foundation.util.LogUtil;
 
 import java.util.concurrent.TimeUnit;
 

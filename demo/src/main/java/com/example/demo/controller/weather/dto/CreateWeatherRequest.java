@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-import com.example.demo.foundation.api.BaseRequest;
+import com.example.foundation.api.BaseRequest;
 
 @Data
 @NoArgsConstructor

@@ -1,4 +1,4 @@
-package com.example.demo.foundation.checker;
+package com.example.foundation.checker;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;

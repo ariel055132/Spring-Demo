@@ -1,7 +1,7 @@
 package com.example.demo.service.weather.checker;
 
 import com.example.demo.entity.Weather;
-import com.example.demo.foundation.checker.BaseChecker;
+import com.example.foundation.checker.BaseChecker;
 import com.example.demo.repository.WeatherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
