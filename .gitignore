@@ -8,3 +8,4 @@ logs/error-*.*.log
 logs/gateway.log
 logs/gateway.log.*-*.log
 logs/gateway-*.*.log
+target/
