@@ -1,6 +1,8 @@
 com/example/foundation/checker/PreCheckHandler.class
 com/example/foundation/exception/GlobalExceptionHandler.class
+com/example/foundation/validator/Ascii.class
 com/example/foundation/checker/CheckMessage.class
+com/example/foundation/validator/AsciiValidator.class
 com/example/foundation/api/BaseResponse.class
 com/example/foundation/checker/BaseChecker.class
 com/example/foundation/api/RequestHeader.class

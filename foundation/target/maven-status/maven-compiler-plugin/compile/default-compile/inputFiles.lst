@@ -8,3 +8,5 @@
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/checker/PreCheckHandler.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/exception/GlobalExceptionHandler.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/util/LogUtil.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/validator/Ascii.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/validator/AsciiValidator.java
