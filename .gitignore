@@ -11,3 +11,10 @@ logs/gateway-*.*.log
 target/
 foundation/target/foundation-1.0.0-SNAPSHOT.jar
 foundation/target/foundation-1.0.0-SNAPSHOT.jar
+
+# Compiled Java files
+*.class
+
+# JAR files
+*.jar
+!*wrapper.jar
