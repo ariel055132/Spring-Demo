@@ -40,3 +40,4 @@ logs/
 Thumbs.db
 
 /target
+target/foundation-1.0.0-SNAPSHOT.jar
