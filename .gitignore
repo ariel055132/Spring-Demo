@@ -10,3 +10,4 @@ logs/gateway.log.*-*.log
 logs/gateway-*.*.log
 target/
 foundation/target/foundation-1.0.0-SNAPSHOT.jar
+foundation/target/foundation-1.0.0-SNAPSHOT.jar
