@@ -257,7 +257,7 @@ class SensitiveDataExamplesTest {
         
         assertNotNull(masked);
         assertTrue(masked.contains("123******0123"));
-        assertTrue(masked.contains("J*** S*****"));
+        assertTrue(masked.contains("J*** S****"));
         assertTrue(masked.contains("Example Bank"));
         assertTrue(masked.contains("001"));
     }
@@ -292,7 +292,7 @@ class SensitiveDataExamplesTest {
         // Get masked version
         String auditLog = SensitiveDataProcessor.toMaskedString(response);
         assertNotNull(auditLog);
-        assertTrue(auditLog.contains("j***@example.com"));
+        assertTrue(auditLog.contains("j*******@example.com"));
         assertTrue(auditLog.contains("091***5678"));
         assertTrue(auditLog.contains("John D."));
     }

@@ -1,5 +1,6 @@
 package com.example.foundation.annotation;
 
+import com.example.foundation.enums.SensitiveType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
