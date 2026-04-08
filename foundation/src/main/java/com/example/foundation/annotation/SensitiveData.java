@@ -15,13 +15,13 @@ import java.lang.annotation.Target;
  * <p>Example usage:</p>
  * <pre>
  * public class UserRequest {
- *     &#64;SensitiveData(type = SensitiveType.PHONE)
+ *     @SensitiveData(type = SensitiveType.PHONE)
  *     private String phoneNumber;
  *     
- *     &#64;SensitiveData(type = SensitiveType.EMAIL)
+ *     @SensitiveData(type = SensitiveType.EMAIL)
  *     private String email;
  *     
- *     &#64;SensitiveData(type = SensitiveType.CUSTOM, keepStart = 2, keepEnd = 2)
+ *     @SensitiveData(type = SensitiveType.CUSTOM, keepStart = 2, keepEnd = 2)
  *     private String customField;
  * }
  * </pre>
