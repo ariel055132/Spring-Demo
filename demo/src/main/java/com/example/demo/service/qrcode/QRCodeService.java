@@ -19,6 +19,8 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -44,8 +46,10 @@ public class QRCodeService {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
     
+    @Value("${app.qrcode.shortcode-length:6}")
+    private int shortCodeLength;
+    
     private static final String SHORT_CODE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    private static final int SHORT_CODE_LENGTH = 6;
     private static final SecureRandom random = new SecureRandom();
 
     /**
@@ -143,6 +147,7 @@ public class QRCodeService {
      * @param request Request containing URL and user info
      * @return BaseResponse with QRCodeDetailResponse
      */
+    @CacheEvict(value = "qrcode", allEntries = true)
     public BaseResponse<QRCodeDetailResponse> createQRCode(CreateQRCodeRequest request) {
         try {
             // Generate unique short code
@@ -186,6 +191,7 @@ public class QRCodeService {
      * @param userId User ID
      * @return BaseResponse with list of QRCodeDetailResponse
      */
+    @Cacheable(value = "qrcode", key = "'list:' + #userId", unless = "#result == null || #result.data == null")
     public BaseResponse<List<QRCodeDetailResponse>> getUserQRCodes(String userId) {
         try {
             List<QRCode> qrCodes = qrCodeRepository.findByUserId(userId);
@@ -220,6 +226,7 @@ public class QRCodeService {
      * @param userId User ID (for authorization)
      * @return BaseResponse with QRCodeDetailResponse
      */
+    @Cacheable(value = "qrcode", key = "'detail:' + #shortCode + ':' + #userId", unless = "#result == null || #result.data == null")
     public BaseResponse<QRCodeDetailResponse> getQRCode(String shortCode, String userId) {
         try {
             QRCode qrCode = qrCodeRepository.findByUserIdAndShortCode(userId, shortCode)
@@ -250,6 +257,7 @@ public class QRCodeService {
      * @param userId User ID (for authorization)
      * @return BaseResponse
      */
+    @CacheEvict(value = "qrcode", allEntries = true)
     public BaseResponse<Void> deleteQRCode(String shortCode, String userId) {
         try {
             QRCode qrCode = qrCodeRepository.findByUserIdAndShortCode(userId, shortCode)
@@ -297,6 +305,32 @@ public class QRCodeService {
         }
     }
     
+    /**
+     * Get original URL by short code WITHOUT incrementing scan count
+     * This is used for testing the redirect endpoint
+     * 
+     * @param shortCode Short code
+     * @return Original URL or null if not found
+     */
+    @Cacheable(value = "qrcode", key = "'redirect:' + #shortCode", unless = "#result == null")
+    public String getOriginalUrlWithoutIncrement(String shortCode) {
+        try {
+            QRCode qrCode = qrCodeRepository.findByShortCode(shortCode)
+                    .orElse(null);
+            
+            if (qrCode == null) {
+                return null;
+            }
+            
+            LogUtil.addInfo("Testing redirect for: {} -> {}", shortCode, qrCode.getOriginalUrl());
+            return qrCode.getOriginalUrl();
+            
+        } catch (Exception e) {
+            LogUtil.wrongInfo("Failed to get original URL: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+    
     // ==================== Helper Methods ====================
     
     /**
@@ -327,8 +361,8 @@ public class QRCodeService {
      * @return Random short code
      */
     private String generateRandomShortCode() {
-        StringBuilder sb = new StringBuilder(SHORT_CODE_LENGTH);
-        for (int i = 0; i < SHORT_CODE_LENGTH; i++) {
+        StringBuilder sb = new StringBuilder(shortCodeLength);
+        for (int i = 0; i < shortCodeLength; i++) {
             int index = random.nextInt(SHORT_CODE_CHARS.length());
             sb.append(SHORT_CODE_CHARS.charAt(index));
         }

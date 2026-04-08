@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,6 +43,9 @@ public class QRCodeController {
     
     @Autowired
     private QRCodeRequestConverter converter;
+    
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
 
     /**
      * Generate QR code and return as PNG image
@@ -106,7 +110,7 @@ public class QRCodeController {
         @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<BaseResponse<QRCodeResponse>> generateQRCodeBase64(
+    public BaseResponse<QRCodeResponse> generateQRCodeBase64(
             @Valid @RequestBody QRCodeRequest request) {
         LogUtil.addInfo("Received QR code Base64 generation request for content length: {}", 
                    request.getContent() != null ? request.getContent().length() : 0);
@@ -115,9 +119,7 @@ public class QRCodeController {
         GenerateQRCodeArg arg = converter.toGenerateArg(request);
         
         // Generate QR code
-        BaseResponse<QRCodeResponse> response = qrCodeService.generateQRCode(arg);
-        
-        return ResponseEntity.ok(response);
+        return qrCodeService.generateQRCode(arg);
     }
 
     /**
@@ -190,19 +192,17 @@ public class QRCodeController {
     @GetMapping("/health")
     @Operation(summary = "QR code service health check", 
                description = "Check if QR code generation service is operational")
-    public ResponseEntity<BaseResponse<Map<String, String>>> healthCheck() {
+    public BaseResponse<Map<String, String>> healthCheck() {
         Map<String, String> healthData = new HashMap<>();
         healthData.put("service", "QR Code Generator");
         healthData.put("status", "UP");
         healthData.put("library", "ZXing 3.5.3");
         healthData.put("timestamp", LocalDateTime.now().toString());
         
-        BaseResponse<Map<String, String>> response = BaseResponse.success(
+        return BaseResponse.success(
             "QR code service is operational", 
             healthData
         );
-        
-        return ResponseEntity.ok(response);
     }
     
     // ==================== QR Code Management Endpoints ====================
@@ -221,11 +221,10 @@ public class QRCodeController {
         @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<BaseResponse<QRCodeDetailResponse>> createQRCode(
+    public BaseResponse<QRCodeDetailResponse> createQRCode(
             @Valid @RequestBody CreateQRCodeRequest request) {
         LogUtil.addInfo("Creating QR code for URL: {}, user: {}", request.getUrl(), request.getUserId());
-        BaseResponse<QRCodeDetailResponse> response = qrCodeService.createQRCode(request);
-        return ResponseEntity.ok(response);
+        return qrCodeService.createQRCode(request);
     }
     
     /**
@@ -241,12 +240,11 @@ public class QRCodeController {
         @ApiResponse(responseCode = "200", description = "QR codes retrieved successfully"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<BaseResponse<List<QRCodeDetailResponse>>> getUserQRCodes(
+    public BaseResponse<List<QRCodeDetailResponse>> getUserQRCodes(
             @Parameter(description = "User ID", required = true)
             @PathVariable String userId) {
         LogUtil.addInfo("Getting QR codes for user: {}", userId);
-        BaseResponse<List<QRCodeDetailResponse>> response = qrCodeService.getUserQRCodes(userId);
-        return ResponseEntity.ok(response);
+        return qrCodeService.getUserQRCodes(userId);
     }
     
     /**
@@ -264,14 +262,13 @@ public class QRCodeController {
         @ApiResponse(responseCode = "404", description = "QR code not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<BaseResponse<QRCodeDetailResponse>> getQRCode(
+    public BaseResponse<QRCodeDetailResponse> getQRCode(
             @Parameter(description = "Short code", required = true)
             @PathVariable String shortCode,
             @Parameter(description = "User ID", required = true)
             @RequestParam String userId) {
         LogUtil.addInfo("Getting QR code: {} for user: {}", shortCode, userId);
-        BaseResponse<QRCodeDetailResponse> response = qrCodeService.getQRCode(shortCode, userId);
-        return ResponseEntity.ok(response);
+        return qrCodeService.getQRCode(shortCode, userId);
     }
     
     /**
@@ -289,28 +286,73 @@ public class QRCodeController {
         @ApiResponse(responseCode = "404", description = "QR code not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<BaseResponse<Void>> deleteQRCode(
+    public BaseResponse<Void> deleteQRCode(
             @Parameter(description = "Short code", required = true)
             @PathVariable String shortCode,
             @Parameter(description = "User ID", required = true)
             @RequestParam String userId) {
         LogUtil.addInfo("Deleting QR code: {} for user: {}", shortCode, userId);
-        BaseResponse<Void> response = qrCodeService.deleteQRCode(shortCode, userId);
-        return ResponseEntity.ok(response);
+        return qrCodeService.deleteQRCode(shortCode, userId);
     }
     
     // ==================== QR Code Redirect Endpoint ====================
     
     /**
+     * Test redirect endpoint - shows where the QR code would redirect without actually redirecting
+     * This endpoint is for testing in Swagger UI (which doesn't handle redirects well)
+     * 
+     * @param shortCode Short code from the QR code
+     * @return JSON with redirect information
+     */
+    @GetMapping("/r/{shortCode}/test")
+    @Operation(summary = "Test QR code redirect (no actual redirect)", 
+               description = "Returns redirect information as JSON without performing the redirect. Use this for testing in Swagger UI.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Redirect information returned"),
+        @ApiResponse(responseCode = "404", description = "QR code not found")
+    })
+    public BaseResponse<Map<String, Object>> testRedirect(
+            @Parameter(description = "Short code from QR", required = true)
+            @PathVariable String shortCode) {
+        
+        LogUtil.addInfo("Testing redirect for QR code: {}", shortCode);
+        
+        // Get original URL without incrementing scan count
+        String originalUrl = qrCodeService.getOriginalUrlWithoutIncrement(shortCode);
+        
+        if (originalUrl == null) {
+            LogUtil.wrongInfo("QR code not found: {}", shortCode);
+            return BaseResponse.error("QR code not found");
+        }
+        
+        // Return redirect information as JSON
+        Map<String, Object> redirectInfo = new HashMap<>();
+        redirectInfo.put("shortCode", shortCode);
+        redirectInfo.put("redirectUrl", originalUrl);
+        redirectInfo.put("redirectType", "HTTP 302 (Found)");
+        redirectInfo.put("note", "This is a test endpoint. The actual redirect happens at GET /api/qrcode/r/{shortCode}");
+        redirectInfo.put("testInBrowser", baseUrl + "/api/qrcode/r/" + shortCode);
+        
+        LogUtil.addInfo("Would redirect to: {}", originalUrl);
+        return BaseResponse.success("Redirect information retrieved", redirectInfo);
+    }
+    
+    /**
      * Redirect endpoint for QR code scanning
      * When a user scans the QR code, they are redirected to the original URL
+     * 
+     * NOTE: This endpoint performs an HTTP 302 redirect which cannot be tested properly in Swagger UI.
+     * To test this endpoint:
+     * 1. Use the /r/{shortCode}/test endpoint in Swagger to verify the redirect URL
+     * 2. Copy the redirect URL and paste it into your browser
+     * 3. Or use: curl -L http://localhost:8080/api/qrcode/r/{shortCode}
      * 
      * @param shortCode Short code from the QR code
      * @return Redirect to original URL
      */
     @GetMapping("/r/{shortCode}")
-    @Operation(summary = "QR code redirect", 
-               description = "Redirects to the original URL when QR code is scanned")
+    @Operation(summary = "QR code redirect (use /test for Swagger testing)", 
+               description = "Redirects to the original URL when QR code is scanned. WARNING: This endpoint returns HTTP 302 redirect which Swagger UI cannot handle properly. Use the /r/{shortCode}/test endpoint for testing in Swagger, or test this in a browser/curl.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "302", description = "Redirect to original URL"),
         @ApiResponse(responseCode = "404", description = "QR code not found")

@@ -17,6 +17,12 @@ spring.data.redis.timeout=60000
 spring.data.redis.database=0
 spring.data.redis.ssl.enabled=false
 
+# Spring Cache Configuration (using Valkey as backend)
+# Valkey is Redis-compatible, so we use spring.cache.type=redis
+spring.cache.type=redis
+spring.cache.redis.time-to-live=600000
+spring.cache.redis.cache-null-values=false
+
 # Swagger/OpenAPI Configuration
 springdoc.api-docs.path=/v3/api-docs
 springdoc.swagger-ui.path=/swagger-ui.html
@@ -29,3 +35,12 @@ logging.level.com.example.demo=DEBUG
 logging.level.org.springframework.data.redis=DEBUG
 logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
 logging.file.name=logs/application.log
+
+# QR Code Configuration
+# Base URL for QR code redirects (used in generated QR codes)
+app.base-url=http://localhost:8081
+# Short code length for QR code URLs (6-8 recommended)
+# 6 chars = 56B combinations (good for < 100K codes)
+# 7 chars = 3.5T combinations (good for < 10M codes)
+# 8 chars = 218T combinations (good for any scale)
+app.qrcode.shortcode-length=6
