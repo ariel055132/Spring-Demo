@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 /**
  * Response DTO for QR code details
  */
@@ -41,14 +39,14 @@ public class QRCodeDetailResponse {
     @Schema(description = "Number of times scanned", example = "5")
     private Long scanCount;
     
-    @Schema(description = "Creation timestamp")
-    private LocalDateTime createdAt;
+    @Schema(description = "Creation timestamp", example = "2026-04-12T10:30:00")
+    private String createdAt;
     
-    @Schema(description = "Last update timestamp")
-    private LocalDateTime updatedAt;
+    @Schema(description = "Last update timestamp", example = "2026-04-12T10:30:00")
+    private String updatedAt;
     
-    @Schema(description = "Last scanned timestamp")
-    private LocalDateTime lastScannedAt;
+    @Schema(description = "Last scanned timestamp", example = "2026-04-12T12:00:00")
+    private String lastScannedAt;
     
     @Schema(description = "Full redirect URL", example = "http://localhost:8080/api/qrcode/r/abc123")
     private String redirectUrl;

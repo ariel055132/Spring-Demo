@@ -21,7 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -32,6 +34,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -43,14 +46,21 @@ public class QRCodeService {
     @Autowired
     private QRCodeRepository qrCodeRepository;
     
+    @Autowired(required = false)
+    private RedisTemplate<String, Object> redisTemplate;
+    
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
     
     @Value("${app.qrcode.shortcode-length:6}")
     private int shortCodeLength;
     
+    @Value("${app.qrcode.valkey-ttl:86400}")
+    private long valkeyTtlSeconds; // Default 24 hours
+    
     private static final String SHORT_CODE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final SecureRandom random = new SecureRandom();
+    private static final String VALKEY_KEY_PREFIX = "qrcode:";
 
     /**
      * Generate QR code and return as Base64-encoded response
@@ -147,6 +157,7 @@ public class QRCodeService {
      * @param request Request containing URL and user info
      * @return BaseResponse with QRCodeDetailResponse
      */
+    @Transactional
     @CacheEvict(value = "qrcode", allEntries = true)
     public BaseResponse<QRCodeDetailResponse> createQRCode(CreateQRCodeRequest request) {
         try {
@@ -156,7 +167,7 @@ public class QRCodeService {
             // Generate redirect URL
             String redirectUrl = baseUrl + "/api/qrcode/r/" + shortCode;
             
-            // Create QR code entity
+            // Create QR code entity (without image - will be generated on-demand)
             QRCode qrCode = QRCode.builder()
                     .shortCode(shortCode)
                     .originalUrl(request.getUrl())
@@ -169,9 +180,12 @@ public class QRCodeService {
             // Save to database
             QRCode savedQRCode = qrCodeRepository.save(qrCode);
             
-            // Generate QR code image for the redirect URL
-            byte[] qrCodeImage = generateQRCodeImage(redirectUrl, savedQRCode.getWidth(), savedQRCode.getHeight());
-            String base64Image = Base64.getEncoder().encodeToString(qrCodeImage);
+            // Save to Valkey for fast access
+            saveToValkey(savedQRCode);
+            
+            // Generate QR code image for the redirect URL (for response only)
+            byte[] qrCodeImageBytes = generateQRCodeImage(redirectUrl, savedQRCode.getWidth(), savedQRCode.getHeight());
+            String base64Image = Base64.getEncoder().encodeToString(qrCodeImageBytes);
             
             // Build response
             QRCodeDetailResponse response = mapToDetailResponse(savedQRCode, base64Image, redirectUrl);
@@ -200,6 +214,7 @@ public class QRCodeService {
                     .map(qrCode -> {
                         String redirectUrl = baseUrl + "/api/qrcode/r/" + qrCode.getShortCode();
                         try {
+                            // Regenerate QR code image from stored metadata
                             byte[] qrCodeImage = generateQRCodeImage(redirectUrl, qrCode.getWidth(), qrCode.getHeight());
                             String base64Image = Base64.getEncoder().encodeToString(qrCodeImage);
                             return mapToDetailResponse(qrCode, base64Image, redirectUrl);
@@ -237,6 +252,7 @@ public class QRCodeService {
             }
             
             String redirectUrl = baseUrl + "/api/qrcode/r/" + qrCode.getShortCode();
+            // Regenerate QR code image from stored metadata
             byte[] qrCodeImage = generateQRCodeImage(redirectUrl, qrCode.getWidth(), qrCode.getHeight());
             String base64Image = Base64.getEncoder().encodeToString(qrCodeImage);
             
@@ -257,6 +273,7 @@ public class QRCodeService {
      * @param userId User ID (for authorization)
      * @return BaseResponse
      */
+    @Transactional
     @CacheEvict(value = "qrcode", allEntries = true)
     public BaseResponse<Void> deleteQRCode(String shortCode, String userId) {
         try {
@@ -267,7 +284,11 @@ public class QRCodeService {
                 return BaseResponse.error("QR code not found");
             }
             
+            // Delete from database
             qrCodeRepository.deleteByUserIdAndShortCode(userId, shortCode);
+            
+            // Delete from Valkey
+            deleteFromValkey(shortCode);
             
             LogUtil.addInfo("QR code deleted: {}", shortCode);
             return BaseResponse.success("QR code deleted successfully", null);
@@ -280,24 +301,42 @@ public class QRCodeService {
     
     /**
      * Get original URL by short code and increment scan count
+     * Tries Valkey first for fast lookup, falls back to database
      * 
      * @param shortCode Short code
      * @return Original URL or null if not found
      */
+    @Transactional
     public String getOriginalUrlAndIncrementScan(String shortCode) {
         try {
-            QRCode qrCode = qrCodeRepository.findByShortCode(shortCode)
-                    .orElse(null);
+            String originalUrl = null;
             
-            if (qrCode == null) {
-                return null;
+            // Try Valkey first for fast lookup
+            Map<Object, Object> valkeyData = getFromValkey(shortCode);
+            if (valkeyData != null && valkeyData.containsKey("originalUrl")) {
+                originalUrl = (String) valkeyData.get("originalUrl");
+                LogUtil.addInfo("QR code found in Valkey: {} -> {}", shortCode, originalUrl);
+            } else {
+                // Fallback to database
+                QRCode qrCode = qrCodeRepository.findByShortCode(shortCode)
+                        .orElse(null);
+                
+                if (qrCode == null) {
+                    return null;
+                }
+                
+                originalUrl = qrCode.getOriginalUrl();
+                
+                // Cache in Valkey for next time
+                saveToValkey(qrCode);
+                LogUtil.addInfo("QR code loaded from DB and cached: {} -> {}", shortCode, originalUrl);
             }
             
-            // Increment scan count
+            // Increment scan count in database (async would be better for performance)
             qrCodeRepository.incrementScanCount(shortCode);
             
-            LogUtil.addInfo("QR code scanned: {} -> {}", shortCode, qrCode.getOriginalUrl());
-            return qrCode.getOriginalUrl();
+            LogUtil.addInfo("QR code scanned: {} -> {}", shortCode, originalUrl);
+            return originalUrl;
             
         } catch (Exception e) {
             LogUtil.wrongInfo("Failed to get original URL: {}", e.getMessage(), e);
@@ -332,6 +371,80 @@ public class QRCodeService {
     }
     
     // ==================== Helper Methods ====================
+    
+    /**
+     * Save QR code data to Valkey for fast access
+     * 
+     * @param qrCode QRCode entity to save
+     */
+    private void saveToValkey(QRCode qrCode) {
+        if (redisTemplate == null) {
+            LogUtil.addInfo("Valkey not available, skipping cache");
+            return;
+        }
+        
+        try {
+            String key = VALKEY_KEY_PREFIX + qrCode.getShortCode();
+            
+            Map<String, Object> qrData = new HashMap<>();
+            qrData.put("shortCode", qrCode.getShortCode());
+            qrData.put("originalUrl", qrCode.getOriginalUrl());
+            qrData.put("userId", qrCode.getUserId());
+            qrData.put("width", qrCode.getWidth());
+            qrData.put("height", qrCode.getHeight());
+            qrData.put("scanCount", qrCode.getScanCount());
+            qrData.put("createdAt", qrCode.getCreatedAt() != null ? qrCode.getCreatedAt().toString() : null);
+            
+            redisTemplate.opsForHash().putAll(key, qrData);
+            redisTemplate.expire(key, valkeyTtlSeconds, TimeUnit.SECONDS);
+            
+            LogUtil.addInfo("Saved QR code to Valkey: {} (TTL: {}s)", qrCode.getShortCode(), valkeyTtlSeconds);
+        } catch (Exception e) {
+            // Log error but don't fail the operation - Valkey is optional
+            LogUtil.wrongInfo("Failed to save QR code to Valkey: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Get QR code data from Valkey
+     * 
+     * @param shortCode Short code
+     * @return Map of QR code data or null if not found
+     */
+    private Map<Object, Object> getFromValkey(String shortCode) {
+        if (redisTemplate == null) {
+            return null;
+        }
+        
+        try {
+            String key = VALKEY_KEY_PREFIX + shortCode;
+            Map<Object, Object> qrData = redisTemplate.opsForHash().entries(key);
+            
+            if (qrData != null && !qrData.isEmpty()) {
+                LogUtil.addInfo("Retrieved QR code from Valkey: {}", shortCode);
+                return qrData;
+            }
+            return null;
+        } catch (Exception e) {
+            LogUtil.wrongInfo("Failed to get QR code from Valkey: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+    
+    /**
+     * Delete QR code data from Valkey
+     * 
+     * @param shortCode Short code
+     */
+    private void deleteFromValkey(String shortCode) {
+        try {
+            String key = VALKEY_KEY_PREFIX + shortCode;
+            redisTemplate.delete(key);
+            LogUtil.addInfo("Deleted QR code from Valkey: {}", shortCode);
+        } catch (Exception e) {
+            LogUtil.wrongInfo("Failed to delete QR code from Valkey: {}", e.getMessage(), e);
+        }
+    }
     
     /**
      * Generate a unique short code for QR redirect
@@ -387,9 +500,9 @@ public class QRCodeService {
                 .width(qrCode.getWidth())
                 .height(qrCode.getHeight())
                 .scanCount(qrCode.getScanCount())
-                .createdAt(qrCode.getCreatedAt())
-                .updatedAt(qrCode.getUpdatedAt())
-                .lastScannedAt(qrCode.getLastScannedAt())
+                .createdAt(qrCode.getCreatedAt() != null ? qrCode.getCreatedAt().toString() : null)
+                .updatedAt(qrCode.getUpdatedAt() != null ? qrCode.getUpdatedAt().toString() : null)
+                .lastScannedAt(qrCode.getLastScannedAt() != null ? qrCode.getLastScannedAt().toString() : null)
                 .redirectUrl(redirectUrl)
                 .build();
     }
