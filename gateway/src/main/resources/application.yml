@@ -79,6 +79,18 @@ spring:
                 redis-rate-limiter.burstCapacity: 150
                 redis-rate-limiter.requestedTokens: 1
         
+        # Spotify API routes (playback and leaderboard)
+        - id: spotify-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/spotify/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 200
+                redis-rate-limiter.burstCapacity: 300
+                redis-rate-limiter.requestedTokens: 1
+        
         # Health check route (public)
         - id: actuator-health
           uri: http://localhost:8081
