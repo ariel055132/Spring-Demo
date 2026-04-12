@@ -24,7 +24,7 @@ public class QRCodeRequest extends BaseRequest {
      * Content to encode in QR code (required)
      * Maximum length: 4296 characters for QR code
      */
-    @Schema(description = "Content to encode in QR code", example = "https://example.com", required = true)
+    @Schema(description = "Content to encode in QR code", example = "https://example.com")
     @NotBlank(message = "Content cannot be blank")
     @Size(max = 4296, message = "Content exceeds maximum length of 4296 characters")
     private String content;

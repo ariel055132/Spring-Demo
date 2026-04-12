@@ -6,6 +6,7 @@ import com.example.demo.entity.QRCode;
 import com.example.demo.repository.QRCodeRepository;
 import com.example.demo.service.qrcode.arg.GenerateQRCodeArg;
 import com.example.demo.service.qrcode.checker.QRCodeChecker;
+import com.example.demo.service.qrcode.converter.QRCodeConverter;
 import com.example.demo.service.qrcode.response.QRCodeResponse;
 import com.example.foundation.api.BaseResponse;
 import com.example.foundation.checker.PreCheck;
@@ -57,6 +58,8 @@ public class QRCodeService {
     
     @Value("${app.qrcode.valkey-ttl:86400}")
     private long valkeyTtlSeconds; // Default 24 hours
+
+    private QRCodeConverter qrCodeConverter;
     
     private static final String SHORT_CODE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final SecureRandom random = new SecureRandom();
@@ -64,6 +67,7 @@ public class QRCodeService {
 
     /**
      * Generate QR code and return as Base64-encoded response
+     * Not persist it to database
      * 
      * @param arg Service argument containing QR code parameters
      * @return BaseResponse with QRCodeResponse data
@@ -81,15 +85,7 @@ public class QRCodeService {
             String base64Image = Base64.getEncoder().encodeToString(qrCodeImage);
             
             // Build response
-            QRCodeResponse response = QRCodeResponse.builder()
-                    .qrcode(base64Image)
-                    .format("PNG")
-                    .encoding("Base64")
-                    .width(arg.getWidth())
-                    .height(arg.getHeight())
-                    .contentLength(arg.getContent().length())
-                    .imageSizeBytes(qrCodeImage.length)
-                    .build();
+            QRCodeResponse response = qrCodeConverter.toQRCodeResponse(arg, qrCodeImage, base64Image);
             
             LogUtil.addInfo("QR code generated successfully, size: {} bytes", qrCodeImage.length);
             return BaseResponse.success("QR code generated successfully", response);
@@ -188,7 +184,7 @@ public class QRCodeService {
             String base64Image = Base64.getEncoder().encodeToString(qrCodeImageBytes);
             
             // Build response
-            QRCodeDetailResponse response = mapToDetailResponse(savedQRCode, base64Image, redirectUrl);
+            QRCodeDetailResponse response = qrCodeConverter.mapToDetailResponse(savedQRCode, base64Image, redirectUrl);
             
             LogUtil.addInfo("QR code created successfully with short code: {}", shortCode);
             return BaseResponse.success("QR code created successfully", response);
@@ -217,10 +213,10 @@ public class QRCodeService {
                             // Regenerate QR code image from stored metadata
                             byte[] qrCodeImage = generateQRCodeImage(redirectUrl, qrCode.getWidth(), qrCode.getHeight());
                             String base64Image = Base64.getEncoder().encodeToString(qrCodeImage);
-                            return mapToDetailResponse(qrCode, base64Image, redirectUrl);
+                            return qrCodeConverter.mapToDetailResponse(qrCode, base64Image, redirectUrl);
                         } catch (Exception e) {
                             LogUtil.wrongInfo("Failed to generate QR image for short code: {}", qrCode.getShortCode(), e);
-                            return mapToDetailResponse(qrCode, null, redirectUrl);
+                            return qrCodeConverter.mapToDetailResponse(qrCode, null, redirectUrl);
                         }
                     })
                     .collect(Collectors.toList());
@@ -238,13 +234,12 @@ public class QRCodeService {
      * Get a specific QR code by short code
      * 
      * @param shortCode Short code
-     * @param userId User ID (for authorization)
      * @return BaseResponse with QRCodeDetailResponse
      */
-    @Cacheable(value = "qrcode", key = "'detail:' + #shortCode + ':' + #userId", unless = "#result == null || #result.data == null")
-    public BaseResponse<QRCodeDetailResponse> getQRCode(String shortCode, String userId) {
+    @Cacheable(value = "qrcode", key = "'detail:' + #shortCode", unless = "#result == null || #result.data == null")
+    public BaseResponse<QRCodeDetailResponse> getQRCode(String shortCode) {
         try {
-            QRCode qrCode = qrCodeRepository.findByUserIdAndShortCode(userId, shortCode)
+            QRCode qrCode = qrCodeRepository.findByShortCode(shortCode)
                     .orElse(null);
             
             if (qrCode == null) {
@@ -256,7 +251,7 @@ public class QRCodeService {
             byte[] qrCodeImage = generateQRCodeImage(redirectUrl, qrCode.getWidth(), qrCode.getHeight());
             String base64Image = Base64.getEncoder().encodeToString(qrCodeImage);
             
-            QRCodeDetailResponse response = mapToDetailResponse(qrCode, base64Image, redirectUrl);
+            QRCodeDetailResponse response = qrCodeConverter.mapToDetailResponse(qrCode, base64Image, redirectUrl);
             
             return BaseResponse.success("QR code retrieved successfully", response);
             
@@ -480,30 +475,5 @@ public class QRCodeService {
             sb.append(SHORT_CODE_CHARS.charAt(index));
         }
         return sb.toString();
-    }
-    
-    /**
-     * Map QRCode entity to QRCodeDetailResponse
-     * 
-     * @param qrCode QRCode entity
-     * @param base64Image Base64 encoded image (can be null)
-     * @param redirectUrl Redirect URL
-     * @return QRCodeDetailResponse
-     */
-    private QRCodeDetailResponse mapToDetailResponse(QRCode qrCode, String base64Image, String redirectUrl) {
-        return QRCodeDetailResponse.builder()
-                .id(qrCode.getId())
-                .shortCode(qrCode.getShortCode())
-                .originalUrl(qrCode.getOriginalUrl())
-                .qrCodeImage(base64Image)
-                .userId(qrCode.getUserId())
-                .width(qrCode.getWidth())
-                .height(qrCode.getHeight())
-                .scanCount(qrCode.getScanCount())
-                .createdAt(qrCode.getCreatedAt() != null ? qrCode.getCreatedAt().toString() : null)
-                .updatedAt(qrCode.getUpdatedAt() != null ? qrCode.getUpdatedAt().toString() : null)
-                .lastScannedAt(qrCode.getLastScannedAt() != null ? qrCode.getLastScannedAt().toString() : null)
-                .redirectUrl(redirectUrl)
-                .build();
     }
 }
