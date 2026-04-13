@@ -33,6 +33,11 @@ public interface QRCodeRepository extends JpaRepository<QRCode, Long> {
     Optional<QRCode> findByUserIdAndShortCode(String userId, String shortCode);
     
     /**
+     * Find QR code by userId and originalURL
+     */
+    Optional<QRCode> findByUserIdAndOriginalUrl(String userId, String originalUrl);
+
+    /**
      * Check if a short code already exists
      */
     boolean existsByShortCode(String shortCode);

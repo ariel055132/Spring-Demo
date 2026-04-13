@@ -1,36 +1,35 @@
 package com.example.demo.service.qrcode.checker;
 
+import com.example.demo.repository.QRCodeRepository;
 import com.example.demo.service.qrcode.arg.GenerateQRCodeArg;
 import com.example.foundation.checker.BaseChecker;
 import com.example.foundation.util.LogUtil;
+import com.example.demo.entity.QRCode;
+import java.util.Optional;
+
+import org.hibernate.query.internal.QueryParameterPositionalImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Checker for QR code business logic validation (duplicate detection)
- * Basic field validation is handled by annotations in QRCodeRequest
  */
 @Component
-public class QRCodeChecker extends BaseChecker<GenerateQRCodeArg> {
+public abstract class QRCodeChecker<T> extends BaseChecker<T> {
+    @Autowired
+    protected QRCodeRepository qrCodeRepository;
+    
     
     // Cache to track recently generated QR codes (content -> timestamp)
     private final Map<String, Instant> qrCodeCache = new ConcurrentHashMap<>();
     
     // Time window for duplicate detection (in minutes)
     private static final long DUPLICATE_CHECK_WINDOW_MINUTES = 5;
-
-    @Override
-    protected void doCheckInternal(GenerateQRCodeArg arg) {
-        // Check for duplicate QR codes
-        checkForDuplicateQRCode(arg.getContent());
-        
-        // Clean up old entries
-        cleanupExpiredEntries();
-    }
     
     /**
      * Check if the QR code content has been generated recently
@@ -91,5 +90,50 @@ public class QRCodeChecker extends BaseChecker<GenerateQRCodeArg> {
     public void clearCache() {
         LogUtil.addInfo("Clearing QR code cache ({} entries)", qrCodeCache.size());
         qrCodeCache.clear();
+    }
+
+    /**
+     * Determine whether QRCode is exist with userId and originalUrl only
+     * 
+     * @param userId
+     * @param originalUrl
+     * @return
+     */
+    protected boolean isQRCodeExistByUserIdAndOriginalUrl(String userId, String originalUrl) {
+        Optional<QRCode> qrCode = qrCodeRepository.findByUserIdAndOriginalUrl(userId, originalUrl);
+        return qrCode.isEmpty() ? false : true;
+    }
+
+    /**
+     * Determine whether QRCode is exist with shortCode only
+     * 
+     * @param shortCode
+     * @return
+     */
+    protected boolean isQRCodeExistByShortCode(String shortCode) {
+        Optional<QRCode> qrCode = qrCodeRepository.findByShortCode(shortCode);
+        return qrCode.isEmpty() ? false : true;
+    }
+
+    /**
+     * Determine whether QRCode is exist with userId only
+     * 
+     * @param userId
+     * @return
+     */
+    protected boolean isQRCodeExistByUserId(String userId) {
+        List<QRCode> qrCodes = qrCodeRepository.findByUserId(userId);
+        return qrCodes.isEmpty() ? false : true;
+    }
+
+    /**
+     * Determine whether QRCode is exist with shortCode and userId
+     * 
+     * @param shortCode
+     * @param userId
+     * @return
+     */
+    protected boolean isQRCodeExist(String shortCode, String userId) {
+        return qrCodeRepository.findByUserIdAndShortCode(userId, shortCode).isPresent();
     }
 }

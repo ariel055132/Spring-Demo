@@ -35,6 +35,7 @@ public class CreateQRCodeRequest extends BaseRequest {
      * User ID who is creating this QR code
      */
     @Schema(description = "User ID", example = "user123")
+    @NotBlank(message = "User ID cannot be blank")
     private String userId;
     
     /**

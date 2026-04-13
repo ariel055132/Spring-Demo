@@ -2,10 +2,11 @@ package com.example.demo.controller.qrcode;
 
 import com.example.demo.controller.qrcode.converter.QRCodeRequestConverter;
 import com.example.demo.controller.qrcode.dto.CreateQRCodeRequest;
-import com.example.demo.controller.qrcode.dto.QRCodeDetailResponse;
-import com.example.demo.controller.qrcode.dto.QRCodeRequest;
+import com.example.demo.controller.qrcode.dto.GenerateQRCodeRequest;
 import com.example.demo.service.qrcode.QRCodeService;
+import com.example.demo.service.qrcode.arg.DeleteQRCodeArg;
 import com.example.demo.service.qrcode.arg.GenerateQRCodeArg;
+import com.example.demo.service.qrcode.response.QRCodeDetailResponse;
 import com.example.demo.service.qrcode.response.QRCodeResponse;
 import com.example.foundation.api.BaseResponse;
 import com.example.foundation.util.LogUtil;
@@ -69,7 +70,7 @@ public class QRCodeController {
         @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<byte[]> generateQRCode(@Valid @RequestBody QRCodeRequest request) {
+    public ResponseEntity<byte[]> generateQRCode(@Valid @RequestBody GenerateQRCodeRequest request) {
         try {
             LogUtil.addInfo("Received QR code generation request for content length: {}", 
                        request.getContent() != null ? request.getContent().length() : 0);
@@ -118,7 +119,7 @@ public class QRCodeController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public BaseResponse<QRCodeResponse> generateQRCodeBase64(
-            @Valid @RequestBody QRCodeRequest request) {
+            @Valid @RequestBody GenerateQRCodeRequest request) {
         LogUtil.addInfo("Received QR code Base64 generation request for content length: {}", 
                    request.getContent() != null ? request.getContent().length() : 0);
         
@@ -296,7 +297,8 @@ public class QRCodeController {
             @Parameter(description = "User ID", required = true)
             @RequestParam String userId) {
         LogUtil.addInfo("Deleting QR code: {} for user: {}", shortCode, userId);
-        return qrCodeService.deleteQRCode(shortCode, userId);
+        DeleteQRCodeArg arg = converter.toDeleteArg(shortCode, userId);
+        return qrCodeService.deleteQRCode(arg);
     }
     
     // ==================== QR Code Redirect Endpoint ====================

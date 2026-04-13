@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class QRCodeRequest extends BaseRequest {
+public class GenerateQRCodeRequest extends BaseRequest {
     
     /**
      * Content to encode in QR code (required)
@@ -50,7 +50,7 @@ public class QRCodeRequest extends BaseRequest {
     /**
      * Constructor for content only (uses default size)
      */
-    public QRCodeRequest(String content) {
+    public GenerateQRCodeRequest(String content) {
         this.content = content;
         this.width = 300;
         this.height = 300;

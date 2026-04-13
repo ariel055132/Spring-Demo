@@ -2,8 +2,8 @@ package com.example.demo.service.qrcode.converter;
 
 import org.springframework.stereotype.Component;
 
-import com.example.demo.controller.qrcode.dto.QRCodeDetailResponse;
 import com.example.demo.service.qrcode.arg.GenerateQRCodeArg;
+import com.example.demo.service.qrcode.response.QRCodeDetailResponse;
 import com.example.demo.service.qrcode.response.QRCodeResponse;
 import com.example.demo.entity.QRCode;
 

@@ -1,4 +1,4 @@
-package com.example.demo.controller.qrcode.dto;
+package com.example.demo.service.qrcode.response;
 
 import com.example.foundation.api.BaseResponse;
 

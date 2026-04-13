@@ -1,12 +1,13 @@
 package com.example.demo.service.qrcode;
 
 import com.example.demo.controller.qrcode.dto.CreateQRCodeRequest;
-import com.example.demo.controller.qrcode.dto.QRCodeDetailResponse;
 import com.example.demo.entity.QRCode;
 import com.example.demo.repository.QRCodeRepository;
+import com.example.demo.service.qrcode.arg.DeleteQRCodeArg;
 import com.example.demo.service.qrcode.arg.GenerateQRCodeArg;
-import com.example.demo.service.qrcode.checker.QRCodeChecker;
+import com.example.demo.service.qrcode.checker.DeleteQRCodeChecker;
 import com.example.demo.service.qrcode.converter.QRCodeConverter;
+import com.example.demo.service.qrcode.response.QRCodeDetailResponse;
 import com.example.demo.service.qrcode.response.QRCodeResponse;
 import com.example.foundation.api.BaseResponse;
 import com.example.foundation.checker.PreCheck;
@@ -72,7 +73,6 @@ public class QRCodeService {
      * @param arg Service argument containing QR code parameters
      * @return BaseResponse with QRCodeResponse data
      */
-    @PreCheck(QRCodeChecker.class)
     public BaseResponse<QRCodeResponse> generateQRCode(GenerateQRCodeArg arg) {
         try {
             LogUtil.addInfo("Generating QR code for content length: {}, size: {}x{}", 
@@ -264,28 +264,21 @@ public class QRCodeService {
     /**
      * Delete a QR code
      * 
-     * @param shortCode Short code
-     * @param userId User ID (for authorization)
+     * @param arg Argument containing shortCode and userId
      * @return BaseResponse
      */
+    @PreCheck(DeleteQRCodeChecker.class)
     @Transactional
     @CacheEvict(value = "qrcode", allEntries = true)
-    public BaseResponse<Void> deleteQRCode(String shortCode, String userId) {
+    public BaseResponse<Void> deleteQRCode(DeleteQRCodeArg arg) {
         try {
-            QRCode qrCode = qrCodeRepository.findByUserIdAndShortCode(userId, shortCode)
-                    .orElse(null);
-            
-            if (qrCode == null) {
-                return BaseResponse.error("QR code not found");
-            }
-            
             // Delete from database
-            qrCodeRepository.deleteByUserIdAndShortCode(userId, shortCode);
+            qrCodeRepository.deleteByUserIdAndShortCode(arg.getUserId(), arg.getShortCode());
             
             // Delete from Valkey
-            deleteFromValkey(shortCode);
+            deleteFromValkey(arg.getShortCode());
             
-            LogUtil.addInfo("QR code deleted: {}", shortCode);
+            LogUtil.addInfo("QR code deleted: {}", arg.getShortCode());
             return BaseResponse.success("QR code deleted successfully", null);
             
         } catch (Exception e) {
