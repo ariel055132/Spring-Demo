@@ -1,6 +1,5 @@
 package com.example.foundation.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
@@ -31,11 +30,10 @@ import java.time.Duration;
 @ConditionalOnProperty(name = "spring.cache.type", havingValue = "redis")
 public class ValkeyCacheConfig implements CachingConfigurer {
 
-    @Autowired
-    private RedisConnectionFactory connectionFactory;
+    private final RedisConnectionFactory connectionFactory;
 
-    public ValkeyCacheConfig() {
-        System.out.println("====== ValkeyCacheConfig CONSTRUCTOR CALLED ======");
+    public ValkeyCacheConfig(RedisConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
     }
 
     /**

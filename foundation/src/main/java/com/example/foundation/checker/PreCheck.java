@@ -16,5 +16,5 @@ public @interface PreCheck {
      * The checker class that implements PreCheckHandler
      * @return The checker class to use for validation
      */
-    Class<? extends PreCheckHandler<?>> value();
+    Class<? extends PreCheckHandler> value();
 }

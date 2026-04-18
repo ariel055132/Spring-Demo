@@ -4,7 +4,7 @@ package com.example.foundation.checker;
  * Interface for handling pre-check validation logic
  * Implement this interface to create custom validation handlers
  */
-public interface PreCheckHandler<T> {
+public interface PreCheckHandler {
     
     /**
      * Perform validation check

@@ -6,6 +6,8 @@ import com.example.foundation.enums.SensitiveType;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Utility class for processing objects with @SensitiveData annotations
@@ -30,29 +32,30 @@ public class SensitiveDataProcessor {
         }
 
         Map<String, Object> result = new HashMap<>();
-        Class<?> clazz = obj.getClass();
 
-        for (Field field : clazz.getDeclaredFields()) {
-            field.setAccessible(true);
-            
-            try {
-                Object value = field.get(obj);
-                
-                if (field.isAnnotationPresent(SensitiveData.class)) {
-                    SensitiveData annotation = field.getAnnotation(SensitiveData.class);
-                    
-                    if (annotation.enabled() && value != null) {
-                        String maskedValue = maskValue(value.toString(), annotation);
-                        result.put(field.getName(), maskedValue);
+        // Walk up the class hierarchy so @SensitiveData fields declared in superclasses are not silently skipped
+        for (Class<?> clazz = obj.getClass(); clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+            for (Field field : clazz.getDeclaredFields()) {
+                field.setAccessible(true);
+
+                try {
+                    Object value = field.get(obj);
+
+                    if (field.isAnnotationPresent(SensitiveData.class)) {
+                        SensitiveData annotation = field.getAnnotation(SensitiveData.class);
+
+                        if (annotation.enabled() && value != null) {
+                            String maskedValue = maskValue(value.toString(), annotation);
+                            result.put(field.getName(), maskedValue);
+                        } else {
+                            result.put(field.getName(), value);
+                        }
                     } else {
                         result.put(field.getName(), value);
                     }
-                } else {
-                    result.put(field.getName(), value);
+                } catch (IllegalAccessException e) {
+                    result.put(field.getName(), "[ACCESS_DENIED]");
                 }
-            } catch (IllegalAccessException e) {
-                // Skip fields that cannot be accessed
-                result.put(field.getName(), "[ACCESS_DENIED]");
             }
         }
 
@@ -103,46 +106,52 @@ public class SensitiveDataProcessor {
     }
 
     /**
-     * Get the SensitiveData annotation from a field
-     * 
+     * Get the SensitiveData annotation from a field.
+     * Returns Optional to force callers to handle the case where the annotation is absent, avoiding silent NPEs.
+     *
      * @param field Field to get annotation from
-     * @return SensitiveData annotation or null if not present
+     * @return Optional containing the annotation, or empty if not present
      */
-    public static SensitiveData getSensitiveAnnotation(Field field) {
-        return field.getAnnotation(SensitiveData.class);
+    public static Optional<SensitiveData> getSensitiveAnnotation(Field field) {
+        return Optional.ofNullable(field.getAnnotation(SensitiveData.class));
     }
 
     /**
-     * Mask a specific field value in an object
-     * 
+     * Mask a specific field value in an object.
+     * Walks the class hierarchy to support fields declared in superclasses.
+     *
      * @param obj Object containing the field
      * @param fieldName Name of the field to mask
-     * @return Masked value or null if field not found
+     * @return Masked value, or null if the field is not found or has no value
      */
     public static String maskField(Object obj, String fieldName) {
         if (obj == null || StringUtil.isBlank(fieldName)) {
             return null;
         }
 
-        try {
-            Field field = obj.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            
-            Object value = field.get(obj);
-            if (value == null) {
+        // Walk up the class hierarchy so fields declared in superclasses are also reachable
+        for (Class<?> clazz = obj.getClass(); clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+            try {
+                Field field = clazz.getDeclaredField(fieldName);
+                field.setAccessible(true);
+
+                Object value = field.get(obj);
+                if (value == null) {
+                    return null;
+                }
+
+                if (field.isAnnotationPresent(SensitiveData.class)) {
+                    SensitiveData annotation = field.getAnnotation(SensitiveData.class);
+                    return maskValue(value.toString(), annotation);
+                }
+                return value.toString();
+            } catch (NoSuchFieldException e) {
+                // Field not on this level — continue up the hierarchy
+            } catch (IllegalAccessException e) {
                 return null;
             }
-
-            if (field.isAnnotationPresent(SensitiveData.class)) {
-                SensitiveData annotation = field.getAnnotation(SensitiveData.class);
-                return maskValue(value.toString(), annotation);
-            } else {
-                // If no annotation, return original value
-                return value.toString();
-            }
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -156,10 +165,12 @@ public class SensitiveDataProcessor {
             return false;
         }
 
-        Class<?> clazz = obj.getClass();
-        for (Field field : clazz.getDeclaredFields()) {
-            if (field.isAnnotationPresent(SensitiveData.class)) {
-                return true;
+        // Walk up the class hierarchy to detect @SensitiveData annotations on inherited fields
+        for (Class<?> clazz = obj.getClass(); clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+            for (Field field : clazz.getDeclaredFields()) {
+                if (field.isAnnotationPresent(SensitiveData.class)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -177,20 +188,10 @@ public class SensitiveDataProcessor {
             return "null";
         }
 
-        Map<String, Object> masked = maskSensitiveFields(obj);
-        StringBuilder sb = new StringBuilder();
-        sb.append(obj.getClass().getSimpleName()).append("{");
-        
-        int count = 0;
-        for (Map.Entry<String, Object> entry : masked.entrySet()) {
-            if (count > 0) {
-                sb.append(", ");
-            }
-            sb.append(entry.getKey()).append("=").append(entry.getValue());
-            count++;
-        }
-        
-        sb.append("}");
-        return sb.toString();
+        Map<String, Object> maskedFields = maskSensitiveFields(obj);
+        String fields = maskedFields.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .collect(Collectors.joining(", "));
+        return obj.getClass().getSimpleName() + "{" + fields + "}";
     }
 }

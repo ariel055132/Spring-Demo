@@ -1,6 +1,7 @@
 package com.example.foundation.exception;
 
 import com.example.foundation.api.BaseResponse;
+import com.example.foundation.util.LogUtil;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -29,7 +30,9 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
     public BaseResponse<Void> handleIllegalStateException(IllegalStateException ex) {
-        return BaseResponse.error(ex.getMessage());
+        // Log the original message internally; return a safe generic message to avoid leaking domain details
+        LogUtil.wrongInfo("Conflict: {}", ex.getMessage());
+        return BaseResponse.error("Request could not be completed due to a conflict");
     }
     
     /**
@@ -40,7 +43,8 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public BaseResponse<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
+        // LinkedHashMap preserves insertion order, giving deterministic field ordering in error responses
+        Map<String, String> errors = new LinkedHashMap<>();
         
         // Collect all field validation errors
         ex.getBindingResult().getAllErrors().forEach(error -> {
@@ -54,11 +58,8 @@ public class GlobalExceptionHandler {
                 .map(entry -> entry.getKey() + " - " + entry.getValue())
                 .collect(Collectors.joining("; "));
         
-        return new BaseResponse<>(
-            "ERROR",
-            message,
-            errors
-        );
+        // Uses error(message, data) overload so field-level details are included in the response body
+        return BaseResponse.error(message, errors);
     }
     
     /**
@@ -69,7 +70,9 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
     public BaseResponse<Void> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return BaseResponse.error(ex.getMessage());
+        // Log the original message internally; return a safe generic message to avoid leaking domain details
+        LogUtil.wrongInfo("Not found: {}", ex.getMessage());
+        return BaseResponse.error("The requested resource was not found");
     }
     
     /**
@@ -80,6 +83,8 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ResponseBody
     public BaseResponse<Void> handleGeneralException(Exception ex) {
-        return BaseResponse.error("An error occurred: " + ex.getMessage());
+        // Log with full stack trace for internal debugging; return a generic message to avoid leaking implementation details
+        LogUtil.wrongInfo("Unhandled exception", ex);
+        return BaseResponse.error("An unexpected error occurred");
     }
 }

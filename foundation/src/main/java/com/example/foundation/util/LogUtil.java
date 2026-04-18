@@ -9,18 +9,21 @@ import org.slf4j.LoggerFactory;
  */
 public class LogUtil {
 
+    private static final String LOG_UTIL_CLASS_NAME = LogUtil.class.getName();
+
     /**
-     * Get logger for the calling class
+     * Get logger for the calling class.
+     * Scans the stack for the first frame outside LogUtil so that AOP proxies
+     * or additional wrapper layers do not shift the hardcoded offset and cause
+     * log entries to be attributed to the wrong class.
      */
     private static Logger getLogger() {
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        // stackTrace[0] is getStackTrace
-        // stackTrace[1] is getLogger
-        // stackTrace[2] is the LogUtil method (addInfo, wrongInfo, debugInfo)
-        // stackTrace[3] is the actual caller
-        if (stackTrace.length > 3) {
-            String callerClassName = stackTrace[3].getClassName();
-            return LoggerFactory.getLogger(callerClassName);
+        for (StackTraceElement frame : Thread.currentThread().getStackTrace()) {
+            String className = frame.getClassName();
+            // Skip JVM internals and LogUtil itself
+            if (!className.startsWith("java.") && !className.equals(LOG_UTIL_CLASS_NAME)) {
+                return LoggerFactory.getLogger(className);
+            }
         }
         return LoggerFactory.getLogger(LogUtil.class);
     }
