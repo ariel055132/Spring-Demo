@@ -60,7 +60,7 @@ public class QRCodeConverter {
     public QRCode createArgtoQRCode(CreateQRCodeArg arg, String shortCode) {
         return QRCode.builder()
             .shortCode(shortCode)
-            .originalUrl(arg.getUserId())
+            .originalUrl(arg.getUrl())
             .width(arg.getWidth())
             .height(arg.getHeight())
             .userId(arg.getUserId())
