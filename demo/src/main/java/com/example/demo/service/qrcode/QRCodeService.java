@@ -1,6 +1,5 @@
 package com.example.demo.service.qrcode;
 
-import com.example.demo.controller.qrcode.dto.CreateQRCodeRequest;
 import com.example.demo.entity.QRCode;
 import com.example.demo.repository.QRCodeRepository;
 import com.example.demo.service.qrcode.arg.CreateQRCodeArg;
@@ -61,6 +60,7 @@ public class QRCodeService {
     @Value("${app.qrcode.valkey-ttl:86400}")
     private long valkeyTtlSeconds; // Default 24 hours
 
+    @Autowired
     private QRCodeConverter qrCodeConverter;
     
     private static final String SHORT_CODE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

@@ -11,6 +11,7 @@ import com.example.demo.entity.QRCode;
 @Component
 public class QRCodeConverter {
     /**
+     * Convert GenerateQRCodeArg, base64 qrCode
      * 
      * @param arg
      * @param qrCodeImage
