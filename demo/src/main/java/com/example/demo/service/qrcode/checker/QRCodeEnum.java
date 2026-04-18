@@ -3,9 +3,9 @@ package com.example.demo.service.qrcode.checker;
 import com.example.foundation.checker.CheckMessage;
 
 public enum QRCodeEnum implements CheckMessage {
-    CREATE_DUPLICATE("QRCode already exists"),
-    UPDATE_NOT_FOUND("No qrcode is found. Cannot update"),
-    DELETE_NOT_FOUND("No qrcode is found. Cannot delete")
+    CREATE_DUPLICATE("QR code already exists"),
+    UPDATE_NOT_FOUND("QR code not found. Cannot update"),
+    DELETE_NOT_FOUND("QR code not found. Cannot delete")
     ;
     
     private final String messageTemplate;
