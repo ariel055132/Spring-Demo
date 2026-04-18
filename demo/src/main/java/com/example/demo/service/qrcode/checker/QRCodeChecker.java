@@ -1,7 +1,6 @@
 package com.example.demo.service.qrcode.checker;
 
 import com.example.demo.repository.QRCodeRepository;
-import com.example.demo.service.qrcode.arg.GenerateQRCodeArg;
 import com.example.foundation.checker.BaseChecker;
 import com.example.foundation.util.LogUtil;
 import com.example.demo.entity.QRCode;
