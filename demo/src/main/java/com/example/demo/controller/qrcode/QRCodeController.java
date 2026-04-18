@@ -4,6 +4,7 @@ import com.example.demo.controller.qrcode.converter.QRCodeRequestConverter;
 import com.example.demo.controller.qrcode.dto.CreateQRCodeRequest;
 import com.example.demo.controller.qrcode.dto.GenerateQRCodeRequest;
 import com.example.demo.service.qrcode.QRCodeService;
+import com.example.demo.service.qrcode.arg.CreateQRCodeArg;
 import com.example.demo.service.qrcode.arg.DeleteQRCodeArg;
 import com.example.demo.service.qrcode.arg.GenerateQRCodeArg;
 import com.example.demo.service.qrcode.response.QRCodeDetailResponse;
@@ -231,8 +232,9 @@ public class QRCodeController {
     })
     public BaseResponse<QRCodeDetailResponse> createQRCode(
             @Valid @RequestBody CreateQRCodeRequest request) {
-        LogUtil.addInfo("Creating QR code for URL: {}, user: {}", request.getUrl(), request.getUserId());
-        return qrCodeService.createQRCode(request);
+        CreateQRCodeArg arg = converter.toCreateArg(request);
+        LogUtil.addInfo("Creating QR code for URL: {}, user: {}", arg.getUrl(), arg.getUserId());
+        return qrCodeService.createQRCode(arg);
     }
     
     /**

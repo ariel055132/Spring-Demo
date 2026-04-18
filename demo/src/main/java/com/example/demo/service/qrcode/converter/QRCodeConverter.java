@@ -2,6 +2,7 @@ package com.example.demo.service.qrcode.converter;
 
 import org.springframework.stereotype.Component;
 
+import com.example.demo.service.qrcode.arg.CreateQRCodeArg;
 import com.example.demo.service.qrcode.arg.GenerateQRCodeArg;
 import com.example.demo.service.qrcode.response.QRCodeDetailResponse;
 import com.example.demo.service.qrcode.response.QRCodeResponse;
@@ -32,8 +33,8 @@ public class QRCodeConverter {
      * Map QRCode entity to QRCodeDetailResponse
      * 
      * @param qrCode QRCode entity
-     * @param base64Image
-     * @param redirectUrl
+     * @param base64Image String
+     * @param redirectUrl String
      * @return
      */
     public QRCodeDetailResponse mapToDetailResponse(QRCode qrCode, String base64Image, String redirectUrl) {
@@ -47,5 +48,23 @@ public class QRCodeConverter {
                 .scanCount(qrCode.getScanCount())
                 .redirectUrl(redirectUrl)
                 .build();
+    }
+
+    /**
+     * CreateQRCodeArg to QRCode entity converter
+     * 
+     * @param arg CreateQRCodeArg
+     * @param shortCode String
+     * @return
+     */
+    public QRCode createArgtoQRCode(CreateQRCodeArg arg, String shortCode) {
+        return QRCode.builder()
+            .shortCode(shortCode)
+            .originalUrl(arg.getUserId())
+            .width(arg.getWidth())
+            .height(arg.getHeight())
+            .userId(arg.getUserId())
+            .scanCount(0L)
+            .build();
     }
 }

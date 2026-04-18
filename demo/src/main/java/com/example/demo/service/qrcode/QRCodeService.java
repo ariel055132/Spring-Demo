@@ -3,6 +3,7 @@ package com.example.demo.service.qrcode;
 import com.example.demo.controller.qrcode.dto.CreateQRCodeRequest;
 import com.example.demo.entity.QRCode;
 import com.example.demo.repository.QRCodeRepository;
+import com.example.demo.service.qrcode.arg.CreateQRCodeArg;
 import com.example.demo.service.qrcode.arg.DeleteQRCodeArg;
 import com.example.demo.service.qrcode.arg.GenerateQRCodeArg;
 import com.example.demo.service.qrcode.checker.DeleteQRCodeChecker;
@@ -150,12 +151,12 @@ public class QRCodeService {
     /**
      * Create a new QR code with URL and persist it to database
      * 
-     * @param request Request containing URL and user info
+     * @param arg Arg containing URL and user info
      * @return BaseResponse with QRCodeDetailResponse
      */
     @Transactional
     @CacheEvict(value = "qrcode", allEntries = true)
-    public BaseResponse<QRCodeDetailResponse> createQRCode(CreateQRCodeRequest request) {
+    public BaseResponse<QRCodeDetailResponse> createQRCode(CreateQRCodeArg arg) {
         try {
             // Generate unique short code
             String shortCode = generateUniqueShortCode();
@@ -164,14 +165,7 @@ public class QRCodeService {
             String redirectUrl = baseUrl + "/api/qrcode/r/" + shortCode;
             
             // Create QR code entity (without image - will be generated on-demand)
-            QRCode qrCode = QRCode.builder()
-                    .shortCode(shortCode)
-                    .originalUrl(request.getUrl())
-                    .userId(request.getUserId())
-                    .width(request.getWidthOrDefault())
-                    .height(request.getHeightOrDefault())
-                    .scanCount(0L)
-                    .build();
+            QRCode qrCode = qrCodeConverter.createArgtoQRCode(arg, shortCode);
             
             // Save to database
             QRCode savedQRCode = qrCodeRepository.save(qrCode);
