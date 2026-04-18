@@ -18,13 +18,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class QRCodeRequest extends BaseRequest {
+public class GenerateQRCodeRequest extends BaseRequest {
     
     /**
      * Content to encode in QR code (required)
      * Maximum length: 4296 characters for QR code
      */
-    @Schema(description = "Content to encode in QR code", example = "https://example.com", required = true)
+    @Schema(description = "Content to encode in QR code", example = "https://example.com")
     @NotBlank(message = "Content cannot be blank")
     @Size(max = 4296, message = "Content exceeds maximum length of 4296 characters")
     private String content;
@@ -50,7 +50,7 @@ public class QRCodeRequest extends BaseRequest {
     /**
      * Constructor for content only (uses default size)
      */
-    public QRCodeRequest(String content) {
+    public GenerateQRCodeRequest(String content) {
         this.content = content;
         this.width = 300;
         this.height = 300;

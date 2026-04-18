@@ -24,7 +24,6 @@ public class CreateQRCodeRequest extends BaseRequest {
      */
     @Schema(description = "URL to encode in QR code (ASCII only, max 20 chars)", 
             example = "https://abc.com", 
-            required = true,
             maxLength = 20)
     @NotBlank(message = "URL cannot be blank")
     @Size(max = 20, message = "URL must not exceed 20 characters")
@@ -36,6 +35,7 @@ public class CreateQRCodeRequest extends BaseRequest {
      * User ID who is creating this QR code
      */
     @Schema(description = "User ID", example = "user123")
+    @NotBlank(message = "User ID cannot be blank")
     private String userId;
     
     /**

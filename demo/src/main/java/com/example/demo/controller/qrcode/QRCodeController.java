@@ -2,10 +2,12 @@ package com.example.demo.controller.qrcode;
 
 import com.example.demo.controller.qrcode.converter.QRCodeRequestConverter;
 import com.example.demo.controller.qrcode.dto.CreateQRCodeRequest;
-import com.example.demo.controller.qrcode.dto.QRCodeDetailResponse;
-import com.example.demo.controller.qrcode.dto.QRCodeRequest;
+import com.example.demo.controller.qrcode.dto.GenerateQRCodeRequest;
 import com.example.demo.service.qrcode.QRCodeService;
+import com.example.demo.service.qrcode.arg.CreateQRCodeArg;
+import com.example.demo.service.qrcode.arg.DeleteQRCodeArg;
 import com.example.demo.service.qrcode.arg.GenerateQRCodeArg;
+import com.example.demo.service.qrcode.response.QRCodeDetailResponse;
 import com.example.demo.service.qrcode.response.QRCodeResponse;
 import com.example.foundation.api.BaseResponse;
 import com.example.foundation.util.LogUtil;
@@ -22,7 +24,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -62,7 +71,7 @@ public class QRCodeController {
         @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<byte[]> generateQRCode(@Valid @RequestBody QRCodeRequest request) {
+    public ResponseEntity<byte[]> generateQRCode(@Valid @RequestBody GenerateQRCodeRequest request) {
         try {
             LogUtil.addInfo("Received QR code generation request for content length: {}", 
                        request.getContent() != null ? request.getContent().length() : 0);
@@ -111,7 +120,7 @@ public class QRCodeController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public BaseResponse<QRCodeResponse> generateQRCodeBase64(
-            @Valid @RequestBody QRCodeRequest request) {
+            @Valid @RequestBody GenerateQRCodeRequest request) {
         LogUtil.addInfo("Received QR code Base64 generation request for content length: {}", 
                    request.getContent() != null ? request.getContent().length() : 0);
         
@@ -223,8 +232,9 @@ public class QRCodeController {
     })
     public BaseResponse<QRCodeDetailResponse> createQRCode(
             @Valid @RequestBody CreateQRCodeRequest request) {
-        LogUtil.addInfo("Creating QR code for URL: {}, user: {}", request.getUrl(), request.getUserId());
-        return qrCodeService.createQRCode(request);
+        CreateQRCodeArg arg = converter.toCreateArg(request);
+        LogUtil.addInfo("Creating QR code for URL: {}, user: {}", arg.getUrl(), arg.getUserId());
+        return qrCodeService.createQRCode(arg);
     }
     
     /**
@@ -251,7 +261,6 @@ public class QRCodeController {
      * Get a specific QR code
      * 
      * @param shortCode Short code
-     * @param userId User ID (for authorization)
      * @return QR code details
      */
     @GetMapping("/detail/{shortCode}")
@@ -264,11 +273,9 @@ public class QRCodeController {
     })
     public BaseResponse<QRCodeDetailResponse> getQRCode(
             @Parameter(description = "Short code", required = true)
-            @PathVariable String shortCode,
-            @Parameter(description = "User ID", required = true)
-            @RequestParam String userId) {
-        LogUtil.addInfo("Getting QR code: {} for user: {}", shortCode, userId);
-        return qrCodeService.getQRCode(shortCode, userId);
+            @PathVariable String shortCode) {
+        LogUtil.addInfo("Getting QR code: {}", shortCode);
+        return qrCodeService.getQRCode(shortCode);
     }
     
     /**
@@ -292,7 +299,8 @@ public class QRCodeController {
             @Parameter(description = "User ID", required = true)
             @RequestParam String userId) {
         LogUtil.addInfo("Deleting QR code: {} for user: {}", shortCode, userId);
-        return qrCodeService.deleteQRCode(shortCode, userId);
+        DeleteQRCodeArg arg = converter.toDeleteArg(shortCode, userId);
+        return qrCodeService.deleteQRCode(arg);
     }
     
     // ==================== QR Code Redirect Endpoint ====================

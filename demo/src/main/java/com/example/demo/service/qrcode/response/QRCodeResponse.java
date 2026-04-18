@@ -1,8 +1,11 @@
 package com.example.demo.service.qrcode.response;
 
+import com.example.foundation.api.BaseResponse;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -12,7 +15,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class QRCodeResponse {
+@EqualsAndHashCode(callSuper=false)
+public class QRCodeResponse extends BaseResponse<Object> {
     
     /**
      * Base64-encoded QR code image (PNG format)
