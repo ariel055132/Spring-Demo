@@ -1,5 +1,6 @@
 package com.example.foundation.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
@@ -31,9 +32,15 @@ import java.time.Duration;
 public class ValkeyCacheConfig implements CachingConfigurer {
 
     private final RedisConnectionFactory connectionFactory;
+    // Injecting the Spring-managed ObjectMapper ensures the same configuration (e.g. JavaTimeModule
+    // for LocalDate/LocalDateTime) is used for both application serialization and cache serialization.
+    // Without this, GenericJackson2JsonRedisSerializer would create its own unconfigured ObjectMapper,
+    // causing a format mismatch when date fields are read back from the cache.
+    private final ObjectMapper objectMapper;
 
-    public ValkeyCacheConfig(RedisConnectionFactory connectionFactory) {
+    public ValkeyCacheConfig(RedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
         this.connectionFactory = connectionFactory;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -52,7 +59,7 @@ public class ValkeyCacheConfig implements CachingConfigurer {
                     RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer())
                 )
                 .serializeValuesWith(
-                    RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer())
+                    RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper))
                 )
                 .disableCachingNullValues();
 

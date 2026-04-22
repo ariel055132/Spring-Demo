@@ -10,6 +10,7 @@
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/config/ValkeyCacheConfig.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/enums/SensitiveType.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/exception/GlobalExceptionHandler.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/util/JsonUtil.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/util/LocalDateTimeUtil.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/util/LogUtil.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/util/MarkSensitiveDataUtil.java

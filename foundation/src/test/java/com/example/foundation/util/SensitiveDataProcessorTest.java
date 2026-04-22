@@ -244,7 +244,7 @@ class SensitiveDataProcessorTest {
     @DisplayName("getSensitiveAnnotation should return annotation for sensitive fields")
     void testGetSensitiveAnnotation() throws NoSuchFieldException {
         Field field = UserDTO.class.getDeclaredField("phoneNumber");
-        SensitiveData annotation = SensitiveDataProcessor.getSensitiveAnnotation(field);
+        SensitiveData annotation = SensitiveDataProcessor.getSensitiveAnnotation(field).orElse(null);
 
         assertNotNull(annotation);
         assertEquals(SensitiveType.PHONE, annotation.type());
@@ -254,7 +254,7 @@ class SensitiveDataProcessorTest {
     @DisplayName("getSensitiveAnnotation should return null for non-sensitive fields")
     void testGetSensitiveAnnotationNull() throws NoSuchFieldException {
         Field field = UserDTO.class.getDeclaredField("username");
-        SensitiveData annotation = SensitiveDataProcessor.getSensitiveAnnotation(field);
+        SensitiveData annotation = SensitiveDataProcessor.getSensitiveAnnotation(field).orElse(null);
 
         assertNull(annotation);
     }
