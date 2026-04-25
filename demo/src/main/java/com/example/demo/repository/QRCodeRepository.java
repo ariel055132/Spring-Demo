@@ -18,24 +18,29 @@ import java.util.Optional;
 public interface QRCodeRepository extends JpaRepository<QRCode, Long> {
     
     /**
-     * Find QR code by short code
+     * Find QR code by short code regardless of deleted status (used to distinguish 404 vs 410)
      */
     Optional<QRCode> findByShortCode(String shortCode);
-    
+
     /**
-     * Find all QR codes for a specific user
+     * Find QR code by short code (active only)
      */
-    List<QRCode> findByUserId(String userId);
-    
+    Optional<QRCode> findByShortCodeAndIsDeletedFalse(String shortCode);
+
     /**
-     * Find QR code by user ID and short code
+     * Find all active QR codes for a specific user
      */
-    Optional<QRCode> findByUserIdAndShortCode(String userId, String shortCode);
-    
+    List<QRCode> findByUserIdAndIsDeletedFalse(String userId);
+
     /**
-     * Find QR code by userId and originalURL
+     * Find active QR code by user ID and short code
      */
-    Optional<QRCode> findByUserIdAndOriginalUrl(String userId, String originalUrl);
+    Optional<QRCode> findByUserIdAndShortCodeAndIsDeletedFalse(String userId, String shortCode);
+
+    /**
+     * Find active QR code by userId and originalURL
+     */
+    Optional<QRCode> findByUserIdAndOriginalUrlAndIsDeletedFalse(String userId, String originalUrl);
 
     /**
      * Check if a short code already exists

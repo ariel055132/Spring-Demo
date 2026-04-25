@@ -39,7 +39,16 @@ public class QRCodeDetailResponse extends BaseResponse<Object> {
     
     @Schema(description = "Number of times scanned", example = "5")
     private Long scanCount;
-    
-    @Schema(description = "Full redirect URL", example = "http://localhost:8080/api/qrcode/r/abc123")
+
+    @Schema(description = "Full redirect URL", example = "http://localhost:8081/api/qrcode/r/abc123")
     private String redirectUrl;
+
+    @Schema(description = "URL to retrieve the QR code PNG image", example = "http://localhost:8081/api/qrcode/abc123/image")
+    private String qrCodeUrl;
+
+    @Schema(description = "Optional expiration timestamp")
+    private java.time.LocalDateTime expiresAt;
+
+    @Schema(description = "Whether this QR code has been soft-deleted", example = "false")
+    private boolean isDeleted;
 }

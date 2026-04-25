@@ -8,17 +8,12 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class CreateQRCodeArg {
-    private String url;
-
+public class UpdateQRCodeArg {
+    private String shortCode;
     private String userId;
-
-    private Integer width;
-
-    private Integer height;
-
+    private String url;
     private LocalDateTime expiresAt;
 }

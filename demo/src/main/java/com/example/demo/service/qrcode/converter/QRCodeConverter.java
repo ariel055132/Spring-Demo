@@ -32,13 +32,14 @@ public class QRCodeConverter {
 
     /**
      * Map QRCode entity to QRCodeDetailResponse
-     * 
-     * @param qrCode QRCode entity
+     *
+     * @param qrCode      QRCode entity
      * @param base64Image String
      * @param redirectUrl String
+     * @param qrCodeUrl   URL for fetching the QR image
      * @return
      */
-    public QRCodeDetailResponse mapToDetailResponse(QRCode qrCode, String base64Image, String redirectUrl) {
+    public QRCodeDetailResponse mapToDetailResponse(QRCode qrCode, String base64Image, String redirectUrl, String qrCodeUrl) {
         return QRCodeDetailResponse.builder()
                 .shortCode(qrCode.getShortCode())
                 .originalUrl(qrCode.getOriginalUrl())
@@ -48,23 +49,29 @@ public class QRCodeConverter {
                 .height(qrCode.getHeight())
                 .scanCount(qrCode.getScanCount())
                 .redirectUrl(redirectUrl)
+                .qrCodeUrl(qrCodeUrl)
+                .expiresAt(qrCode.getExpiresAt())
+                .isDeleted(qrCode.isDeleted())
                 .build();
     }
 
     /**
      * CreateQRCodeArg to QRCode entity converter
-     * 
-     * @param arg CreateQRCodeArg
-     * @param shortCode String
+     *
+     * @param arg           CreateQRCodeArg
+     * @param shortCode     generated token
+     * @param normalizedUrl validated and normalized URL
      * @return
      */
-    public QRCode createArgtoQRCode(CreateQRCodeArg arg, String shortCode) {
+    public QRCode createArgtoQRCode(CreateQRCodeArg arg, String shortCode, String normalizedUrl) {
         return QRCode.builder()
             .shortCode(shortCode)
-            .originalUrl(arg.getUrl())
+            .originalUrl(normalizedUrl)
             .width(arg.getWidth())
             .height(arg.getHeight())
             .userId(arg.getUserId())
+            .expiresAt(arg.getExpiresAt())
+            .isDeleted(false)
             .scanCount(0L)
             .build();
     }

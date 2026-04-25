@@ -35,7 +35,7 @@ public class QRCode {
     /**
      * Original URL that the QR code redirects to
      */
-    @Column(name = "original_url", length = 20, nullable = false)
+    @Column(name = "original_url", length = 2048, nullable = false)
     private String originalUrl;
     
     /**
@@ -80,6 +80,20 @@ public class QRCode {
      */
     @Column(name = "last_scanned_at")
     private LocalDateTime lastScannedAt;
+
+    /**
+     * Optional expiration timestamp — redirects return 410 Gone after this time.
+     */
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
+    /**
+     * Soft-delete flag — true means the QR code has been deleted.
+     * Redirects return 410 Gone for soft-deleted codes.
+     */
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "boolean not null default false")
+    @Builder.Default
+    private boolean isDeleted = false;
     
     /**
      * Set creation timestamp before persist

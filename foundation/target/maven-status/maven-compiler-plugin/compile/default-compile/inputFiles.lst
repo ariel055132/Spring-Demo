@@ -7,6 +7,8 @@
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/checker/PreCheck.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/checker/PreCheckAspect.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/checker/PreCheckHandler.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/codec/Base16Util.java
+/Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/codec/Base64Util.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/config/ValkeyCacheConfig.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/enums/SensitiveType.java
 /Users/adrianli/Documents/GitHub/Spring-Demo/foundation/src/main/java/com/example/foundation/exception/GlobalExceptionHandler.java

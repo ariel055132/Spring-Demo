@@ -1,6 +1,5 @@
 package com.example.demo.controller.qrcode.dto;
 
-import com.example.foundation.validator.Ascii;
 import com.example.foundation.api.BaseRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
@@ -22,12 +21,11 @@ public class CreateQRCodeRequest extends BaseRequest {
      * The URL to encode in the QR code (required)
      * Must be ASCII characters only, maximum 20 characters
      */
-    @Schema(description = "URL to encode in QR code (ASCII only, max 20 chars)", 
-            example = "https://abc.com", 
-            maxLength = 20)
+    @Schema(description = "URL to encode in QR code (http/https, max 2048 chars)",
+            example = "https://example.com",
+            maxLength = 2048)
     @NotBlank(message = "URL cannot be blank")
-    @Size(max = 20, message = "URL must not exceed 20 characters")
-    @Ascii(message = "URL must contain only ASCII characters")
+    @Size(max = 2048, message = "URL must not exceed 2048 characters")
     @Pattern(regexp = "^https?://.*", message = "URL must start with http:// or https://")
     private String url;
     
@@ -69,4 +67,10 @@ public class CreateQRCodeRequest extends BaseRequest {
     public int getHeightOrDefault() {
         return height != null ? height : 300;
     }
+
+    /**
+     * Optional expiration timestamp for the QR code
+     */
+    @Schema(description = "Optional expiration timestamp", example = "2026-12-31T23:59:59")
+    private java.time.LocalDateTime expiresAt;
 }
