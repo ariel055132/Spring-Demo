@@ -226,6 +226,7 @@ public class QRCodeService {
     /**
      * Get all active QR codes for a user.
      */
+    @Transactional(readOnly = true)
     @Cacheable(value = "qrcode", key = "'list:' + #userId", unless = "#result == null || #result.data == null")
     public BaseResponse<List<QRCodeDetailResponse>> getUserQRCodes(String userId) {
         try {
@@ -258,6 +259,7 @@ public class QRCodeService {
     /**
      * Get details for a single active QR code by short code.
      */
+    @Transactional(readOnly = true)
     @Cacheable(value = "qrcode", key = "'detail:' + #shortCode", unless = "#result == null || #result.data == null")
     public BaseResponse<QRCodeDetailResponse> getQRCode(String shortCode) {
         try {
@@ -286,6 +288,7 @@ public class QRCodeService {
      * Return PNG image bytes for the redirect QR of a stored short code.
      * Matches the /api/qr/{token}/image endpoint in the reference.
      */
+    @Transactional(readOnly = true)
     public byte[] getQRCodeImageBytes(String shortCode) throws IOException, WriterException {
         QRCode qrCode = qrCodeRepository.findByShortCodeAndIsDeletedFalse(shortCode).orElse(null);
         if (qrCode == null) {
@@ -372,6 +375,7 @@ public class QRCodeService {
      * Return total and per-day scan counts for a short code.
      * Matches the /api/qr/{token}/analytics endpoint in the reference.
      */
+    @Transactional(readOnly = true)
     public BaseResponse<Map<String, Object>> getAnalytics(String shortCode) {
         try {
             QRCode qrCode = qrCodeRepository.findByShortCodeAndIsDeletedFalse(shortCode).orElse(null);
@@ -405,6 +409,7 @@ public class QRCodeService {
 
     // ==================== Test helper ====================
 
+    @Transactional(readOnly = true)
     @Cacheable(value = "qrcode", key = "'redirect:' + #shortCode", unless = "#result == null")
     public String getOriginalUrlWithoutIncrement(String shortCode) {
         try {

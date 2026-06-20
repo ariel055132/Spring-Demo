@@ -14,3 +14,9 @@ spring.data.redis.database=0
 # spring.datasource.url=jdbc:postgresql://localhost:5432/weatherdb
 # spring.datasource.username=postgres
 # spring.datasource.password=YOUR_POSTGRES_PASSWORD_HERE
+
+# Optional read replica (read scaling)
+# Leave empty to route reads to primary
+# READ_DATASOURCE_URL=jdbc:postgresql://replica-host:5432/weatherdb
+# READ_DATASOURCE_USERNAME=replica_user
+# READ_DATASOURCE_PASSWORD=YOUR_REPLICA_PASSWORD_HERE

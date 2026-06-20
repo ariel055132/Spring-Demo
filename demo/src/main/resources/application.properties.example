@@ -3,6 +3,24 @@ spring.application.name=demo
 # Server Configuration (Changed from default 8080 to 8081 for API Gateway)
 server.port=8081
 
+# PostgreSQL Connection Settings
+spring.datasource.url=jdbc:postgresql://localhost:5432/your_db_here
+spring.datasource.username=your_db_username_here
+spring.datasource.password=your_db_password_here
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# Read scaling (optional): configure read replica URL.
+# Leave READ_DATASOURCE_URL empty to use primary for reads.
+spring.datasource.write.url=${spring.datasource.url}
+spring.datasource.write.username=${spring.datasource.username}
+spring.datasource.write.password=${spring.datasource.password}
+spring.datasource.write.driver-class-name=${spring.datasource.driver-class-name}
+
+spring.datasource.read.url=${READ_DATASOURCE_URL:}
+spring.datasource.read.username=${READ_DATASOURCE_USERNAME:${spring.datasource.username}}
+spring.datasource.read.password=${READ_DATASOURCE_PASSWORD:${spring.datasource.password}}
+spring.datasource.read.driver-class-name=${READ_DATASOURCE_DRIVER:${spring.datasource.driver-class-name}}
+
 # Valkey/Redis Connection Settings
 spring.data.redis.host=your_valkey_host_here
 spring.data.redis.port=6378
