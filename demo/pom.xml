@@ -78,6 +78,21 @@
 			<artifactId>logback-classic</artifactId>
 		</dependency>
 
+		<!-- Temporal SDK (Saga) -->
+		<dependency>
+			<groupId>io.temporal</groupId>
+			<artifactId>temporal-sdk</artifactId>
+			<version>1.33.0</version>
+		</dependency>
+
+		<!-- Temporal Testing SDK -->
+		<dependency>
+			<groupId>io.temporal</groupId>
+			<artifactId>temporal-testing</artifactId>
+			<version>1.33.0</version>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- ZXing for QR Code generation -->
 		<dependency>
 			<groupId>com.google.zxing</groupId>
